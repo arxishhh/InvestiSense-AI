@@ -4,7 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5d4a9da7-7d25-48c4-8056-316d3bc080f5" name="Changes" comment="" />
+    <list default="true" id="5d4a9da7-7d25-48c4-8056-316d3bc080f5" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/InvestiSense-AI.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/InvestiSense-AI.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -73,11 +78,11 @@
 }</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Projects\InvestiSense-AI" />
       <recent name="C:\Projects\InvestiSense AI\backend\utils" />
       <recent name="C:\Projects\InvestiSense AI\dataset" />
       <recent name="C:\Projects\InvestiSense AI\database" />
       <recent name="C:\Projects\InvestiSense AI" />
-      <recent name="C:\Projects\InvestiSense AI\dataset\numerical_data" />
     </key>
   </component>
   <component name="RunManager">
