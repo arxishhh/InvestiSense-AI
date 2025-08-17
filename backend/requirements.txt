@@ -1,0 +1,13 @@
+fastapi==0.116.1
+langchain_community==0.3.27
+langchain_core==0.3.74
+langchain_groq==0.3.7
+pandas==2.3.1
+dotenv==0.9.9
+pydantic==2.11.7
+python-dotenv==1.1.1
+yfinance==0.2.65
+regex==2025.7.34
+uvicorn==0.35.0
+sentence-transformers==5.0.0
+chromadb==1.0.15
