@@ -10,7 +10,7 @@ import yfinance as yf
 import asyncio
 
 load_dotenv()
-model = ChatGroq(model_name = os.getenv('LLAMA_MODEL'))
+model = ChatGroq(model_name = os.getenv('OPENAI_MODEL'))
 
 @tool
 def fetch_real_time_data(tickers : List[str], data_type : List[str], period : str = '1d') -> dict:
@@ -24,27 +24,36 @@ def fetch_real_time_data(tickers : List[str], data_type : List[str], period : st
     """
     results = {}
     for t in tickers:
-        stock = yf.Ticker(t)
-        info = stock.info
-        ticker_data = {}
-        mapping = {
-            'price': lambda: stock.history(period= period)['Close'].iloc[-1],
-            'market_cap': lambda: info.get('marketCap'),
-            "volume": lambda: info.get('volume'),
-            "pe_ratio": lambda: info.get('trailingPE'),
-            "high_low": lambda: (info.get('dayHigh'), info.get('dayLow')),
-            "dividend_yield": lambda: info.get('dividendYield'),
-            "earnings_date": lambda: stock.earnings_dates.head(1).to_dict() if hasattr(stock,'earnings_dates') else None,
-        }
-        for d in data_type:
-            if d in mapping:
-                try:
-                    ticker_data[d] = mapping[d]()
-                except Exception as e:
-                    ticker_data[d] = f'Error fetching {d}: {str(e)}'
-            else :
-                ticker_data[d] = f'Invalid data type: {d}'
-        results[t] = ticker_data
+        try:
+            stock = yf.Ticker(t)
+            try:
+                info = stock.info
+
+            except Exception as e:
+                results[t] = {"error": f"Information not available."}
+            ticker_data = {}
+            mapping = {
+                'price': lambda: stock.history(period=period)['Close'].iloc[-1],
+                'market_cap': lambda: info.get('marketCap'),
+                "volume": lambda: info.get('volume'),
+                "pe_ratio": lambda: info.get('trailingPE'),
+                "high_low": lambda: (info.get('dayHigh'), info.get('dayLow')),
+                "dividend_yield": lambda: info.get('dividendYield'),
+                "earnings_date": lambda: stock.earnings_dates.head(1).to_dict() if hasattr(stock,'earnings_dates') else None,
+            }
+            for d in data_type:
+                if d in mapping:
+                    try:
+                        ticker_data[d] = mapping[d]()
+                    except Exception:
+                        ticker_data[d] = f"Could not fetch {d} for {t}. The symbol may be invalid or delisted."
+                else:
+                    ticker_data[d] = f'Invalid data type: {d}'
+            results[t] = ticker_data
+        except Exception as e:
+            results[t] = {"error": f"Ticker {t} not found or may be delisted."}
+            continue
+
     return results
 
 llm_with_tools = model.bind_tools([fetch_real_time_data])
@@ -73,7 +82,7 @@ async def real_time_query(query,role):
 
 
 if __name__ == '__main__':
-    result = asyncio.run(real_time_query("What is the current price of Apple",'analyst'))
+    result = asyncio.run(real_time_query("Indicate whether investing in Microsoft is advisable right now, based on today's market conditions.",'analyst'))
     print(result)
 
 

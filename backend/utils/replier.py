@@ -19,7 +19,6 @@ async def buffer():
     return ''
 async def context_extractor(query,role):
     splits = routing(query)
-    print(splits)
     L = await asyncio.gather(
         answer_general_query(splits['General Query'],role) if len(splits['General Query'])>0 else buffer(),
         rag(splits['Textual Query'],role) if len(splits['Textual Query'])>0 else buffer(),
@@ -61,5 +60,5 @@ Return the answer as a proper string suitable for chatbot delivery.
 
 
 if __name__ == '__main__':
-    content = "What is Cash Flow Operating"
-    print(asyncio.run(answer('Hii','investor',[{'User': 'You', 'Message': 'Hii'}])))
+    content = "Can you analyze the recent performance of Apple and suggest if it’s a good time to invest?"
+    print(asyncio.run(answer(content,'analyst',[{'User': 'You', 'Message': content}])))

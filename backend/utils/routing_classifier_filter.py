@@ -74,7 +74,7 @@ Input: Retrieve the qualitative and quantitative disclosures about market risk f
 Output: "ticker": ["META"],"year": ["2023"],"sec": ["Market Risks"]
 Input: Extract Apple’s auditor attestation and Sarbanes-Oxley compliance discussion about internal controls from its 2021 annual SEC report.
 Output: "ticker": ["AAPL"],"year": ["2021"],"sec": ["Controls and Procedures"]
-The format of the output should be {format}
+The format of the output should be {format}.
 ##########
 Query
 {query}

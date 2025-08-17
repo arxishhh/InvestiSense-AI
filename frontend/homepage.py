@@ -1,4 +1,5 @@
 import streamlit as st
+import json
 import requests
 st.title("💬 InvestiSense AI")
 role_map = {
@@ -8,7 +9,7 @@ role_map = {
 }
 if 'role' not in st.session_state:
     st.session_state.role = "analyst"
-if 'history' not in st.session_state:
+if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
 
 selected_label = st.radio(
@@ -27,14 +28,17 @@ else:
 user_query = st.chat_input('Ask anything finance...')
 if user_query and len(str(user_query).strip()) != 0:
     st.session_state.chat_history.append({"User": "You", "Message": user_query})
-    print(st.session_state.chat_history)
     length_of_history = len(st.session_state.chat_history)
     payload = {'query': user_query, 'role': st.session_state.role, 'chat_history': st.session_state.chat_history[:10 if length_of_history > 10 else length_of_history]}
-    response = requests.post('http://127.0.0.1:8000/chat', json=payload)
-    st.session_state.chat_history.append({"User": "Assistant", "Message": response})
+    print(payload)
+    response = requests.post( 'http://127.0.0.1:8000/chat', json=payload)
+    result = json.loads(response.content.decode('utf-8'))
+    st.session_state.chat_history.append({"User": "Assistant", "Message": result})
 
 for chat in st.session_state.chat_history:
     if chat['User'] == 'You':
-        st.write(chat['Message'])
+        with st.chat_message(name = 'user',width = 'stretch'):
+            st.write(chat['Message'])
     else:
-        st.write(chat['Message'])
+        with st.chat_message(name = 'ai',width = 'stretch'):
+            st.write(chat['Message'])

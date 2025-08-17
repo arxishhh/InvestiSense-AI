@@ -29,10 +29,10 @@ async def startup():
 async def root():
     return {"message": "InvestiSense AI backend is running"}
 
-@app.post("/chat",response_model=ChatResponse)
+@app.post("/chat")
 async def get_response(chat_request : ChatRequest):
     try:
         result = await answer(chat_request.query,chat_request.role,chat_request.chat_history)
-        return ChatResponse(response = result)
+        return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

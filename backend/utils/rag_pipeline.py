@@ -21,6 +21,9 @@ async def rag(query,role):
     result = await filter(query)
     question = result['Refined']['query']
     fil = result['Filter']
+    for key,entry in fil.items():
+        if entry[0] is None:
+            return 'Cannot fetch data'
     where = {
         '$and': [
             {'ticker': {'$in': fil['ticker']}},

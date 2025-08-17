@@ -11,3 +11,4 @@ regex==2025.7.34
 uvicorn==0.35.0
 pinecone==7.3.0
 langchain-pinecone==0.2.11
+
