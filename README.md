@@ -47,7 +47,7 @@ tailored for both beginners and experienced investors.
 
 - ⚡ **FastAPI** — High-performance backend for AI-powered responses and API endpoints.  
 - 🧠 **LangChain + RAG Pipeline** — Context-aware retrieval and reasoning for financial insights.  
-- 🤖 **LLMs (OpenAI / Hugging Face)** — Natural language understanding and generation.  
+- 🤖 **LLMs (OpenAI / ChatGroq)** — Natural language understanding and financial Q&A generation.
 - 🐍 **Python** — Core programming language for backend, utilities, and AI logic.  
 - 📊 **SQLite Databases** — Lightweight numeric databases (`analyst_data.db`, `executive_data.db`, `investor_data.db`) for structured financial data.
 - 📈 **yFinance** — Real-time stock price, financials, and historical market data.  
