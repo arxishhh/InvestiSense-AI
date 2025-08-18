@@ -9,11 +9,12 @@ It combines **real-time market data**, **advanced analytics**, and **natural lan
 
 - Answer user queries in natural language  
 - Generate personalized financial insights  
-- Assist in portfolio evaluation  
+- Assist in portfolio evaluation
 
 Built with a **FastAPI backend**, **Streamlit interface**, and **external APIs**,  
 InvestiSense-AI delivers accurate, user-friendly, and interactive financial intelligence  
 tailored for both beginners and experienced investors.
+
 ---
 
 ## ✨ Features
