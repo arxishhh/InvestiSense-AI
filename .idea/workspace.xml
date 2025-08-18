@@ -5,14 +5,21 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5d4a9da7-7d25-48c4-8056-316d3bc080f5" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/app/backend/main/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/backend/utils/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/InvestiSense-AI.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/InvestiSense-AI.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/main/server.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/main/server.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/utils/rag_pipeline.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/utils/rag_pipeline.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/utils/real_time_data_tool.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/utils/real_time_data_tool.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/utils/replier.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/utils/replier.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/utils/routing_classifier_filter.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/utils/routing_classifier_filter.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/homepage.py" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/homepage.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/main/server.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/backend/main/server.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/utils/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/backend/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/utils/memory.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/backend/utils/memory.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/utils/rag_pipeline.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/backend/utils/rag_pipeline.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/utils/real_time_data_tool.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/backend/utils/real_time_data_tool.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/utils/replier.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/backend/utils/replier.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/utils/routing_classifier_filter.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/backend/utils/routing_classifier_filter.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/utils/sql_query_generator.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/backend/utils/sql_query_generator.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/homepage.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/frontend/homepage.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -83,11 +90,11 @@
 }</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Projects\InvestiSense-AI\app" />
       <recent name="C:\Projects\InvestiSense-AI" />
       <recent name="C:\Projects\InvestiSense AI\backend\utils" />
       <recent name="C:\Projects\InvestiSense AI\dataset" />
       <recent name="C:\Projects\InvestiSense AI\database" />
-      <recent name="C:\Projects\InvestiSense AI" />
     </key>
   </component>
   <component name="RunManager">

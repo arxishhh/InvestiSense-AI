@@ -5,7 +5,7 @@ from langchain_pinecone import PineconeVectorStore
 from langchain_community.embeddings import HuggingFaceEmbeddings
 import warnings
 import os
-from backend.utils.routing_classifier_filter import filter,answer_generator
+from app.backend.utils.routing_classifier_filter import filter,answer_generator
 import asyncio
 load_dotenv()
 

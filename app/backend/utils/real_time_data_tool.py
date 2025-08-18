@@ -70,7 +70,7 @@ async def real_time_query(query,role):
         prompt = PromptTemplate(
             template='''You are a highly professional {role} in a big finance company.You will be given some data form a good answer from the data and the question
             Data : {data}
-            Question : {question}.Round off the data to two decimal places.No preamble
+            Question : {question}.Round off the data to two decimal places.No preamble.Use proper units.
             ''',
             input_variables=['data', 'question','role']
         )
@@ -82,7 +82,7 @@ async def real_time_query(query,role):
 
 
 if __name__ == '__main__':
-    result = asyncio.run(real_time_query("Indicate whether investing in Microsoft is advisable right now, based on today's market conditions.",'analyst'))
+    result = asyncio.run(real_time_query("What is the current stock price of Apple and tell its high and low",'analyst'))
     print(result)
 
 

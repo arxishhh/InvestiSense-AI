@@ -1,9 +1,9 @@
 from dotenv import load_dotenv
-from backend.utils.routing_classifier_filter import routing,answer_general_query
-from backend.utils.memory import query_gen_memory
-from backend.utils.rag_pipeline import rag
-from backend.utils.real_time_data_tool import real_time_query
-from backend.utils.sql_query_generator import sql_chain
+from app.backend.utils.routing_classifier_filter import routing,answer_general_query
+from app.backend.utils.memory import query_gen_memory
+from app.backend.utils.rag_pipeline import rag
+from app.backend.utils.real_time_data_tool import real_time_query
+from app.backend.utils.sql_query_generator import sql_chain
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_groq import ChatGroq
@@ -23,7 +23,7 @@ async def context_extractor(query,role):
         answer_general_query(splits['General Query'],role) if len(splits['General Query'])>0 else buffer(),
         rag(splits['Textual Query'],role) if len(splits['Textual Query'])>0 else buffer(),
         real_time_query(splits['Real-Time Query'],role) if len(splits['Real-Time Query'])>0 else buffer(),
-        sql_chain(splits['Numerical Query'],role) if len(splits['Numerical Query'])>0 else buffer(),
+        sql_chain(splits['Numerical Query'],role) if len(splits['Numerical Query'])>0 else buffer()
     )
     text = '\n'.join(L)
     return text
@@ -60,5 +60,5 @@ Return the answer as a proper string suitable for chatbot delivery.
 
 
 if __name__ == '__main__':
-    content = "Can you analyze the recent performance of Apple and suggest if it’s a good time to invest?"
+    content = "Rate Apple’s 2024 management‑focused factors (e.g., R&D $31.37 B, SG&A $26.10 B, tax expense $29.75 B) out of 10."
     print(asyncio.run(answer(content,'analyst',[{'User': 'You', 'Message': content}])))

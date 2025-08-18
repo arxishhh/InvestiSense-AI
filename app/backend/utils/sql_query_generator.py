@@ -4,7 +4,7 @@ import pandas as pd
 import asyncio
 from langchain_groq import ChatGroq
 from dotenv import load_dotenv
-from backend.utils.routing_classifier_filter import answer_generator
+from app.backend.utils.routing_classifier_filter import answer_generator
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate
 import os
@@ -62,15 +62,15 @@ async def generate_sql_query(query,role):
     chain = prompt | llm | parser
     return await chain.ainvoke({'query':query,'role':role})
 async def run_query(query,role):
-    BASE_DIR = Path(__file__).resolve().parent.parent.parent
-    db_path = BASE_DIR/'database'/'numeric_db'/f'{role}_data.db'
+    BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
+    db_path = BASE_DIR / 'database' / 'numeric_db' / f'{role}_data.db'
     if not db_path.exists():
         raise FileNotFoundError(f"Database file not found: {db_path}")
     if query.strip().upper().startswith('SELECT'):
         with sqlite3.connect(str(db_path)) as conn:
             try:
                 df = pd.read_sql_query(query, conn)
-            except Exception as e:
+            except Exception :
                 return 'The specified role do not have the access to the following data.'
             return df
 
