@@ -9,11 +9,12 @@ It combines **real-time market data**, **advanced analytics**, and **natural lan
 
 - Answer user queries in natural language  
 - Generate personalized financial insights  
-- Assist in portfolio evaluation  
+- Assist in portfolio evaluation
 
 Built with a **FastAPI backend**, **Streamlit interface**, and **external APIs**,  
 InvestiSense-AI delivers accurate, user-friendly, and interactive financial intelligence  
 tailored for both beginners and experienced investors.
+
 ---
 
 ## ✨ Features
@@ -46,7 +47,7 @@ tailored for both beginners and experienced investors.
 
 - ⚡ **FastAPI** — High-performance backend for AI-powered responses and API endpoints.  
 - 🧠 **LangChain + RAG Pipeline** — Context-aware retrieval and reasoning for financial insights.  
-- 🤖 **LLMs (OpenAI / Hugging Face)** — Natural language understanding and generation.  
+- 🤖 **LLMs (OpenAI / ChatGroq)** — Natural language understanding and financial Q&A generation.
 - 🐍 **Python** — Core programming language for backend, utilities, and AI logic.  
 - 📊 **SQLite Databases** — Lightweight numeric databases (`analyst_data.db`, `executive_data.db`, `investor_data.db`) for structured financial data.
 - 📈 **yFinance** — Real-time stock price, financials, and historical market data.  
