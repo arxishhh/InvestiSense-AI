@@ -8,7 +8,19 @@ import asyncio
 load_dotenv()
 model = ChatGroq(model_name = os.getenv('OPENAI_MODEL'))
 
-async def query_gen_memory(query,memory):
+async def query_gen_memory(**kwargs):
+    """Rephrase a query based on the given text history while preserving context and including relevant details.
+
+    Args:
+        **kwargs: Keyword arguments containing the query and memory.
+            memory (list): A list of dictionaries containing the text history, where each dictionary has 'User' and 'Message' keys.
+            query (str): The query to be rephrased.
+
+    Returns:
+        str: The rephrased query.
+    """
+    memory = kwargs['memory']
+    query = kwargs['query']
     history = " "
     for messages in memory:
         history = history + f"{messages['User']}: {messages['Message']} \n"
@@ -22,7 +34,7 @@ async def query_gen_memory(query,memory):
         If the query is an independent query on its own no need to change it.Give the complete context in a detail way to the query as well.Do not make any information of your own.
         
         History:
-        {history}
+        {memory}
         Query:
         {query}
         ''',
@@ -30,7 +42,7 @@ async def query_gen_memory(query,memory):
     )
     parser = StrOutputParser()
     chain = prompt | model | parser
-    query = await chain.ainvoke({'history':history,'query':query})
+    query = await chain.ainvoke({'memory':memory,'query':query})
     return query
 
 if __name__ == '__main__':
@@ -107,4 +119,4 @@ Currency impact: A weaker foreign‑currency environment relative to the U.S. do
 State‑aid tax obligation: Apple disclosed a pending €14.2 billion (≈ $15.8 billion) payment to Ireland, held in escrow and unavailable for general use.
 These factors collectively shaped Apple’s performance and strategic outlook for 2024.'''},
     {"User": "You", "Message": "rate it out of 10"}]
-    print(asyncio.run(query_gen_memory('rate it out of 10',memory)))
+    print(asyncio.run(query_gen_memory(query = 'rate it out of 10',memory = memory)))

@@ -4,6 +4,7 @@ import os
 import asyncio
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 from app.backend.utils.replier import answer
+from app.backend.utils.error_handling import safe_fallback
 
 st.title("💬 InvestiSense AI")
 role_map = {
@@ -36,7 +37,7 @@ if user_query and len(str(user_query).strip()) != 0:
     payload = {'query': user_query, 'role': st.session_state.role, 'chat_history': st.session_state.chat_history[:10 if length_of_history > 10 else length_of_history]}
     # response = requests.post( 'http://127.0.0.1:8000/chat', json=payload)
     # result = json.loads(response.content.decode('utf-8'))
-    result = asyncio.run(answer(payload['query'],payload['role'],payload['chat_history']))
+    result = asyncio.run(safe_fallback(answer,query = payload['query'],role = payload['role'],memory = payload['chat_history']))
     st.session_state.chat_history.append({"User": "Assistant", "Message": result})
 
 for chat in st.session_state.chat_history:

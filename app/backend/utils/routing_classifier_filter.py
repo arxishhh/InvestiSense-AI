@@ -15,7 +15,16 @@ model = ChatGroq(model_name = os.getenv('OPENAI_MODEL'))
 parser_json = JsonOutputParser()
 parser_str = StrOutputParser()
 
-def routing(query):
+async def routing(**kwargs):
+    """Route a user's query into numerical, textual, real-time, and general categories.
+
+    Args:
+        **kwargs: Keyword arguments, including 'query' (str): The user's query to be routed.
+
+    Returns:
+        dict: A JSON object with keys 'Numerical Query', 'Textual Query', 'Real-Time Query', and 'General Query' representing the categorized queries.
+    """
+    query = kwargs['query']
     prompt = PromptTemplate(
         template='''
 You are a query classifier for a fintech platform.
@@ -44,9 +53,34 @@ The Format should be {format}
         input_variables=['query'],
         partial_variables={'format': parser_json.get_format_instructions()})
     chain = prompt | model | parser_json
-    return chain.invoke({'query': query})
+    return await chain.ainvoke({'query': query})
 
-async def filter(query):
+async def filter(**kwargs):
+    """Parse a financial query related to SEC 10-K filings and extract relevant information.
+
+    Args:
+        **kwargs: Keyword arguments, must include 'query' for the input query string.
+
+    Returns:
+        dict: A JSON object with the following keys:
+            'ticker' (list): Stock tickers as an array, or [null] if none.
+            'year' (list): Fiscal years as an array, or [null] if none.
+            'sec' (list): 10-K section(s) as an array, options include:
+                - Business Overview
+                - Risk Factors
+                - Management's Discussion and Analysis
+                - Mergers & Acquisitions
+                - Legal Proceedings
+                - Controls and Procedures
+                - Market Risk
+
+    Examples:
+        Input: "Show me Apple's business overview from their 2023 10-K"
+        Output: {"ticker": ["AAPL"], "year": ["2023"], "sec": ["Business Overview"]}
+        Input: "What are the risk factors in Tesla's latest annual report?"
+        Output: {"ticker": ["TSLA"], "year": ["2025"], "sec": ["Risk Factors"]}
+    """
+    query = kwargs['query']
     prompt_filter = PromptTemplate(
         template='''
         You are a financial query parser for SEC 10-K filings. Extract and return ONLY a structured JSON with:
@@ -88,7 +122,19 @@ Query
     })
     chain = parallel_chain
     return await chain.ainvoke({'query':query})
-async def answer_generator(query,data,role):
+async def answer_generator(**kwargs):
+    """Generate a user-friendly answer to a query based on provided context.
+
+    Args:
+        **kwargs: Keyword arguments containing the query, context, and role.
+            query (str): The query to be answered.
+            context (str): The context or data related to the query.
+            role (str): The role of the responder (e.g., a finance professional).
+
+    Returns:
+        str: A formatted answer to the query based on the provided context.
+    """
+    query, context, role = kwargs['query'], kwargs['context'], kwargs['role']
     prompt = PromptTemplate(
         template = '''You are a highly professional {role} in a big finance company.
         Answer the following query you will be given a list which is a direct answer to the query.
@@ -99,11 +145,22 @@ async def answer_generator(query,data,role):
         #####
         Data: {data}
         ''',
-        input_variables= ['query','role','data']
+        input_variables= ['query','role','context']
     )
     chain = prompt | model | parser_str
-    return await chain.ainvoke({'query':query,'role':role,'data':data})
-async def answer_general_query(query,role):
+    return await chain.ainvoke({'query':query,'role':role,'data':context})
+async def answer_general_query(**kwargs):
+    """Answer a general query from the perspective of a specific role in a finance company.
+
+    Args:
+        **kwargs: Keyword arguments.
+            query (str): The query to be answered.
+            role (str): The role of the respondent.
+
+    Returns:
+        str: A professional and concise response to the query.
+    """
+    query, role = kwargs['query'], kwargs['role']
     prompt = PromptTemplate(
         template='''You are a highly professional {role} in a big finance company.
             Answer the following query

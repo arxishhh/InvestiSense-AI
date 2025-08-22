@@ -57,7 +57,18 @@ def fetch_real_time_data(tickers : List[str], data_type : List[str], period : st
     return results
 
 llm_with_tools = model.bind_tools([fetch_real_time_data])
-async def real_time_query(query,role):
+async def real_time_query(**kwargs):
+    """Perform a real-time query with a given role.
+
+    Args:
+        **kwargs: Keyword arguments.
+            query (str): The query to be executed.
+            role (str): The role of the user.
+
+    Returns:
+        str: The result of the real-time query, or an error message if real-time data cannot be fetched.
+    """
+    query, role = kwargs['query'], kwargs['role']
     messages = [
         HumanMessage(query)
     ]
@@ -82,7 +93,7 @@ async def real_time_query(query,role):
 
 
 if __name__ == '__main__':
-    result = asyncio.run(real_time_query("What is the current stock price of Apple and tell its high and low",'analyst'))
+    result = asyncio.run(real_time_query(query = "What is the current stock price of Apple and tell its high and low",role = 'analyst'))
     print(result)
 
 

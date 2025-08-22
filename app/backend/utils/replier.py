@@ -5,6 +5,7 @@ from app.backend.utils.rag_pipeline import rag
 from app.backend.utils.real_time_data_tool import real_time_query
 from app.backend.utils.sql_query_generator import sql_chain
 from langchain_core.prompts import PromptTemplate
+from app.backend.utils.error_handling import  safe_fallback
 from langchain_core.output_parsers import StrOutputParser
 from langchain_groq import ChatGroq
 import asyncio
@@ -16,21 +17,53 @@ parser_str = StrOutputParser()
 pd.set_option('display.max_columns', None)
 load_dotenv()
 async def buffer():
+    """Return an empty string buffer.
+
+    Returns:
+        str: An empty string.
+    """
     return ''
-async def context_extractor(query,role):
-    splits = routing(query)
+async def context_extractor(**kwargs):
+    """Extract relevant context based on a query and user role.
+
+    Args:
+        **kwargs: Keyword arguments containing 'query' and 'role'.
+
+        query (str): The input query to process.
+        role (str): The user's role.
+
+    Returns:
+        str: Extracted context in text format.
+    """
+    query = kwargs['query']
+    role = kwargs['role']
+    splits = await routing(query = query)
     L = await asyncio.gather(
-        answer_general_query(splits['General Query'],role) if len(splits['General Query'])>0 else buffer(),
-        rag(splits['Textual Query'],role) if len(splits['Textual Query'])>0 else buffer(),
-        real_time_query(splits['Real-Time Query'],role) if len(splits['Real-Time Query'])>0 else buffer(),
-        sql_chain(splits['Numerical Query'],role) if len(splits['Numerical Query'])>0 else buffer()
+        safe_fallback(answer_general_query,query = splits['General Query'],role = role) if len(splits['General Query'])>0 else buffer(),
+        safe_fallback(rag,query = splits['Textual Query'],role = role) if len(splits['Textual Query'])>0 else buffer(),
+        safe_fallback(real_time_query,query = splits['Real-Time Query'],role = role) if len(splits['Real-Time Query'])>0 else buffer(),
+        safe_fallback(sql_chain,query = splits['Numerical Query'],role = role) if len(splits['Numerical Query'])>0 else buffer()
     )
     text = '\n'.join(L)
     return text
 
-async def answer(query,role,memory):
-    query = await query_gen_memory(query,memory)
-    context = await context_extractor(query,role)
+async def answer(**kwargs):
+    """Generate a professional and user-friendly financial answer based on the provided query and context.
+
+    Args:
+        **kwargs: Keyword arguments containing:
+            query (str): The user's query.
+            memory (object): Additional memory or context for the query.
+            role (str): The role of the chatbot, influencing its tone and response.
+
+    Returns:
+        str: A refined and professional financial answer, suitable for chatbot delivery.
+    """
+    query = kwargs['query']
+    memory = kwargs['memory']
+    role = kwargs['role']
+    query = await safe_fallback(query_gen_memory,query = query,memory = memory)
+    context = await safe_fallback(context_extractor,query = query,role = role)
     if len(context.strip()) == 0:
         context = 'Do not have knowledge about this query'
     prompt = PromptTemplate(
@@ -60,5 +93,5 @@ Return the answer as a proper string suitable for chatbot delivery.
 
 
 if __name__ == '__main__':
-    content = "Rate Apple’s 2024 management‑focused factors (e.g., R&D $31.37 B, SG&A $26.10 B, tax expense $29.75 B) out of 10."
-    print(asyncio.run(answer(content,'analyst',[{'User': 'You', 'Message': content}])))
+    content = "What is the current stock price of Apple?"
+    print(asyncio.run(answer(query = content,role = 'analyst',memory = [{'User': 'You', 'Message': content}])))

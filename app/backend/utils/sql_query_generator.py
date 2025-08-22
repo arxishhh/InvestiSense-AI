@@ -5,6 +5,7 @@ import asyncio
 from langchain_groq import ChatGroq
 from dotenv import load_dotenv
 from app.backend.utils.routing_classifier_filter import answer_generator
+from app.backend.utils.error_handling import safe_fallback
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate
 import os
@@ -15,7 +16,18 @@ load_dotenv()
 parser = StrOutputParser()
 llm = ChatGroq(model_name = os.getenv('OPENAI_MODEL'))
 
-async def generate_sql_query(query,role):
+async def generate_sql_query(**kwargs):
+    """Generate a SQL query based on a natural language question.
+
+    Args:
+        **kwargs: Keyword arguments containing the query and role.
+            query (str): The natural language question to generate a SQL query for.
+            role (str): The role or context for the SQL query.
+
+    Returns:
+        str: The generated SQL query as a string.
+    """
+    query, role = kwargs['query'], kwargs['role']
     prompt = PromptTemplate(
         template = '''You are an expert in understanding the database schema and generating SQL queries for a natural language question
         pertaining to the data you have.The schema is provided in the schema tags.
@@ -61,7 +73,18 @@ async def generate_sql_query(query,role):
     )
     chain = prompt | llm | parser
     return await chain.ainvoke({'query':query,'role':role})
-async def run_query(query,role):
+async def run_query(**kwargs):
+    """Execute a SQL query on a database based on the provided role.
+
+    Args:
+        **kwargs: Keyword arguments containing 'query' and 'role'.
+            query (str): The SQL query to execute.
+            role (str): The role determining the database to use.
+
+    Returns:
+        pandas.DataFrame or str: The query results as a DataFrame if successful, otherwise an error message.
+    """
+    query, role = kwargs['query'], kwargs['role']
     BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
     db_path = BASE_DIR / 'database' / 'numeric_db' / f'{role}_data.db'
     if not db_path.exists():
@@ -74,15 +97,26 @@ async def run_query(query,role):
                 return 'The specified role do not have the access to the following data.'
             return df
 
-async def sql_chain(query,role):
-    sql_query = await generate_sql_query(query,role)
+async def sql_chain(**kwargs):
+    """Execute a SQL query and generate a response.
+
+    Args:
+        **kwargs: Keyword arguments containing:
+            query (str): The query to execute.
+            role (str): The role associated with the query.
+
+    Returns:
+        awaitable: The generated response after executing the SQL query.
+    """
+    query, role = kwargs['query'], kwargs['role']
+    sql_query = await safe_fallback(generate_sql_query,query = query,role = role)
     pattern = "<SQL>(.*?)</SQL>"
     match = re.findall(pattern,sql_query,re.DOTALL)
     if match:
-         context = await run_query(match[0],role)
+         context = await safe_fallback(run_query,query = match[0],role = role)
          context = context.to_markdown(index =False) if type(context) == pd.core.frame.DataFrame else context
     else:
         context = 'No information avaliable.'
-    return await answer_generator(query,context,role)
+    return await safe_fallback(answer_generator,query = query,context = context,role = role)
 if __name__ == '__main__':
-    print(asyncio.run(sql_chain('Show me the latest quarterly revenue and net income figures for Apple for the years 2022 and 2023, and compare their gross margin percentages over the same periods.','analyst')))
+    print(asyncio.run(sql_chain(query = 'Show me the latest quarterly revenue and net income figures for Apple for the years 2022 and 2023, and compare their gross margin percentages over the same periods.',role = 'analyst')))
