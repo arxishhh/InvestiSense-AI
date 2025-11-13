@@ -3,20 +3,24 @@ from pathlib import Path
 import pandas as pd
 import asyncio
 from langchain_groq import ChatGroq
+from langchain_community.tools import tool
 from dotenv import load_dotenv
 from app.backend.utils.routing_classifier_filter import answer_generator
 from app.backend.utils.error_handling import safe_fallback
 from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnableConfig
 from langchain_core.prompts import PromptTemplate
 import os
 import re
+from pydantic import BaseModel,Field
+from typing import Literal
 
 
 load_dotenv()
 parser = StrOutputParser()
 llm = ChatGroq(model_name = os.getenv('OPENAI_MODEL'))
 
-async def generate_sql_query(**kwargs):
+def generate_sql_query(**kwargs):
     """Generate a SQL query based on a natural language question.
 
     Args:
@@ -27,7 +31,6 @@ async def generate_sql_query(**kwargs):
     Returns:
         str: The generated SQL query as a string.
     """
-    query, role = kwargs['query'], kwargs['role']
     prompt = PromptTemplate(
         template = '''You are an expert in understanding the database schema and generating SQL queries for a natural language question
         pertaining to the data you have.The schema is provided in the schema tags.
@@ -72,8 +75,8 @@ async def generate_sql_query(**kwargs):
         input_variables= ['query','role']
     )
     chain = prompt | llm | parser
-    return await chain.ainvoke({'query':query,'role':role})
-async def run_query(**kwargs):
+    return chain.invoke({'query':kwargs['query'],'role':kwargs['role']})
+def run_query(**kwargs):
     """Execute a SQL query on a database based on the provided role.
 
     Args:
@@ -85,7 +88,7 @@ async def run_query(**kwargs):
         pandas.DataFrame or str: The query results as a DataFrame if successful, otherwise an error message.
     """
     query, role = kwargs['query'], kwargs['role']
-    BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
+    BASE_DIR = Path(__file__).resolve().parent.parent.parent
     db_path = BASE_DIR / 'database' / 'numeric_db' / f'{role}_data.db'
     if not db_path.exists():
         raise FileNotFoundError(f"Database file not found: {db_path}")
@@ -97,26 +100,27 @@ async def run_query(**kwargs):
                 return 'The specified role do not have the access to the following data.'
             return df
 
-async def sql_chain(**kwargs):
-    """Execute a SQL query and generate a response.
-
+@tool
+def sql_tool(query : str,config : RunnableConfig):
+    """Converts a Natural Language Query Converts it into SQL Query,Executes the SQL query and generate a response.
     Args:
-        **kwargs: Keyword arguments containing:
-            query (str): The query to execute.
-            role (str): The role associated with the query.
-
+        query (str): The query to execute.
     Returns:
-        awaitable: The generated response after executing the SQL query.
+        The generated response after executing the SQL query.
     """
-    query, role = kwargs['query'], kwargs['role']
-    sql_query = await safe_fallback(generate_sql_query,query = query,role = role)
+    if config and "configurable" in config:
+        role = config['configurable'].get('role')
+    else:
+        role = 'analyst'
+    sql_query = safe_fallback(generate_sql_query,query = query,role = role)
     pattern = "<SQL>(.*?)</SQL>"
     match = re.findall(pattern,sql_query,re.DOTALL)
     if match:
-         context = await safe_fallback(run_query,query = match[0],role = role)
+         context = safe_fallback(run_query,query = match[0],role = role)
          context = context.to_markdown(index =False) if type(context) == pd.core.frame.DataFrame else context
     else:
         context = 'No information avaliable.'
-    return await safe_fallback(answer_generator,query = query,context = context,role = role)
+    return context
+
 if __name__ == '__main__':
-    print(asyncio.run(sql_chain(query = 'Show me the latest quarterly revenue and net income figures for Apple for the years 2022 and 2023, and compare their gross margin percentages over the same periods.',role = 'analyst')))
+    print(txt_to_sql_tool.invoke({'query':'Show me the latest quarterly revenue and net income figures for Apple for the years 2022 and 2023, and compare their gross margin percentages over the same periods.','role':'analyst'}))

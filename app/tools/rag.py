@@ -1,35 +1,32 @@
 from collections import defaultdict
 from dotenv import load_dotenv
-from pinecone import Pinecone
-from langchain_pinecone import PineconeVectorStore
 from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.tools import StructuredTool
+from app.backend.utils.routing_classifier_filter import filter
 import warnings
 import os
-from app.backend.utils.routing_classifier_filter import filter,answer_generator
 import asyncio
+from pydantic import BaseModel,Field,ConfigDict
 load_dotenv()
 
-warnings.filterwarnings("ignore")
-PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
-index_name = "investisense-db"
-embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-pc = Pinecone(api_key=PINECONE_API_KEY)
-index = pc.Index(index_name)
-vector_store = PineconeVectorStore(index = index,embedding=embeddings)
-async def rag(**kwargs):
-    """Retrieve and generate a response based on a query.
+class RAG(BaseModel):
+    query : str
 
-    Args:
-        **kwargs: Keyword arguments containing the query parameters.
-            query (str): The query to be processed.
-            role (str): The role of the user making the query.
+from pinecone import Pinecone
+from langchain_pinecone import PineconeVectorStore
 
-    Returns:
-        str: The generated response to the query.
-    """
-    query,role  = kwargs['query'],kwargs['role']
-    global client
-    result = await filter(query = query)
+def rag(query : str):
+    PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
+    index_name = "investisense-db"
+    embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+    pc = Pinecone(api_key=PINECONE_API_KEY)
+    index = pc.Index(index_name)
+    vector_store = PineconeVectorStore.from_existing_index(
+        index_name=index_name,
+        embedding=embeddings
+    )
+
+    result = filter(query = query)
     question = result['Refined']['query']
     fil = result['Filter']
     for key,entry in fil.items():
@@ -43,11 +40,12 @@ async def rag(**kwargs):
         ]
     }
     retriever = vector_store.as_retriever(search_kwargs={'k': 15, 'filter': where})
-    docs = await retriever.ainvoke(question)
-    context = await structured_result(result =docs)
-    return await answer_generator(query = query,context = context,role = role)
+    docs = retriever.invoke(question)
+    context = structured_result(result = docs)
+    return context
 
-async def structured_result(**kwargs):
+
+def structured_result(**kwargs):
     """Structure result data into a hierarchical dictionary and format as markdown.
 
     Args:
@@ -63,9 +61,9 @@ async def structured_result(**kwargs):
         year = metadatas['year']
         sec = metadatas['sec']
         structured_dict[ticker][year][sec].append(r.page_content)
-    return await format_markdown(dict = structured_dict)
+    return format_markdown(dict = structured_dict)
 
-async def format_markdown(**kwargs):
+def format_markdown(**kwargs):
     """Generate markdown text from a given dictionary of ticker symbols, years, and sections.
 
     Args:
@@ -87,6 +85,18 @@ async def format_markdown(**kwargs):
                 markdown += f"### {sec}\n{content}\n"
     return markdown
 
+rag_tool = StructuredTool.from_function(
+    func = rag,
+    name = 'RagTool',
+    description = """Retrieve and generate a response based on a query.
+    Args:
+    query (str): The query to be processed.
+    Returns:
+        str: The generated response to the query.
+    """,
+    args_schema = RAG
+)
+
 if __name__ == '__main__':
     query = "What are the lawsuits filed by Apple in 2022"
-    print(asyncio.run(rag(query = query,role = 'analyst')))
+    print(rag(query))

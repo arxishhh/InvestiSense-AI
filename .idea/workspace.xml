@@ -5,13 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5d4a9da7-7d25-48c4-8056-316d3bc080f5" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/InvestiSense-AI.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/InvestiSense-AI.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/backend/utils/error_handling.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/backend/utils/error_handling.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/backend/utils/memory.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/backend/utils/memory.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/backend/utils/rag_pipeline.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/backend/utils/rag_pipeline.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/backend/utils/real_time_data_tool.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/backend/utils/real_time_data_tool.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/backend/utils/rag_pipeline.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/backend/utils/real_time_data_tool.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/app/backend/utils/replier.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/backend/utils/replier.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/backend/utils/routing_classifier_filter.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/backend/utils/routing_classifier_filter.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/backend/utils/sql_query_generator.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/backend/utils/sql_query_generator.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/backend/utils/sql_query_generator.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/app/frontend/homepage.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/frontend/homepage.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -57,15 +60,19 @@
     &quot;Python.memory.executor&quot;: &quot;Run&quot;,
     &quot;Python.numeric_data_extractor.executor&quot;: &quot;Run&quot;,
     &quot;Python.numerical_data_tool.executor&quot;: &quot;Run&quot;,
+    &quot;Python.query_generator.executor&quot;: &quot;Run&quot;,
     &quot;Python.rag.executor&quot;: &quot;Run&quot;,
     &quot;Python.rag_pipeline.executor&quot;: &quot;Run&quot;,
     &quot;Python.real_time_data_agent.executor&quot;: &quot;Run&quot;,
     &quot;Python.real_time_data_tool.executor&quot;: &quot;Run&quot;,
+    &quot;Python.realtime_data_fetcher.executor&quot;: &quot;Run&quot;,
     &quot;Python.replier.executor&quot;: &quot;Run&quot;,
     &quot;Python.routing_classifier_filter.executor&quot;: &quot;Run&quot;,
     &quot;Python.semantic_route.executor&quot;: &quot;Run&quot;,
     &quot;Python.sql_query_generator.executor&quot;: &quot;Run&quot;,
+    &quot;Python.state.executor&quot;: &quot;Run&quot;,
     &quot;Python.structuring.executor&quot;: &quot;Run&quot;,
+    &quot;Python.supervisor.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,

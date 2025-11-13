@@ -1,10 +1,11 @@
 import streamlit as st
 import sys
 import os
-import asyncio
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+from app.utils.state import SupervisorState
 from app.backend.utils.replier import answer
 from app.backend.utils.error_handling import safe_fallback
+import time
 
 st.title("💬 InvestiSense AI")
 role_map = {
@@ -34,11 +35,16 @@ user_query = st.chat_input('Ask anything finance...')
 if user_query and len(str(user_query).strip()) != 0:
     st.session_state.chat_history.append({"User": "You", "Message": user_query})
     length_of_history = len(st.session_state.chat_history)
-    payload = {'query': user_query, 'role': st.session_state.role, 'chat_history': st.session_state.chat_history[:10 if length_of_history > 10 else length_of_history]}
+    state = SupervisorState(query =  user_query, role = st.session_state.role, memory = st.session_state.chat_history[:10 if length_of_history > 10 else length_of_history])
     # response = requests.post( 'http://127.0.0.1:8000/chat', json=payload)
     # result = json.loads(response.content.decode('utf-8'))
-    result = asyncio.run(safe_fallback(answer,query = payload['query'],role = payload['role'],memory = payload['chat_history']))
-    st.session_state.chat_history.append({"User": "Assistant", "Message": result})
+    start = time.time()
+    st.write(start)
+    result = safe_fallback(answer,state = state)
+    end = time.time()
+    st.write(end)
+    st.write(f'Time Taken {end-start}')
+    st.session_state.chat_history.append({"User": "Assistant", "Message": result['response']})
 
 for chat in st.session_state.chat_history:
     if chat['User'] == 'You':

@@ -15,7 +15,7 @@ model = ChatGroq(model_name = os.getenv('OPENAI_MODEL'))
 parser_json = JsonOutputParser()
 parser_str = StrOutputParser()
 
-async def routing(**kwargs):
+def routing(**kwargs):
     """Route a user's query into numerical, textual, real-time, and general categories.
 
     Args:
@@ -53,9 +53,9 @@ The Format should be {format}
         input_variables=['query'],
         partial_variables={'format': parser_json.get_format_instructions()})
     chain = prompt | model | parser_json
-    return await chain.ainvoke({'query': query})
+    return chain.invoke({'query': query})
 
-async def filter(**kwargs):
+def filter(**kwargs):
     """Parse a financial query related to SEC 10-K filings and extract relevant information.
 
     Args:
@@ -121,8 +121,8 @@ Query
         'Filter': prompt_filter | model | parser_json
     })
     chain = parallel_chain
-    return await chain.ainvoke({'query':query})
-async def answer_generator(**kwargs):
+    return chain.invoke({'query':query})
+def answer_generator(**kwargs):
     """Generate a user-friendly answer to a query based on provided context.
 
     Args:
@@ -148,8 +148,8 @@ async def answer_generator(**kwargs):
         input_variables= ['query','role','context']
     )
     chain = prompt | model | parser_str
-    return await chain.ainvoke({'query':query,'role':role,'data':context})
-async def answer_general_query(**kwargs):
+    return chain.invoke({'query':query,'role':role,'data':context})
+def answer_general_query(**kwargs):
     """Answer a general query from the perspective of a specific role in a finance company.
 
     Args:
@@ -171,7 +171,7 @@ async def answer_general_query(**kwargs):
         input_variables=['query', 'role']
     )
     chain = prompt | model | parser_str
-    return await chain.ainvoke({'query': query, 'role': role})
+    return chain.invoke({'query': query, 'role': role})
 
 
 

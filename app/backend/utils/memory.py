@@ -2,13 +2,13 @@ from langchain_groq import ChatGroq
 from dotenv import load_dotenv
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate
+from app.utils.state import SupervisorState
 import os
-import asyncio
 
 load_dotenv()
 model = ChatGroq(model_name = os.getenv('OPENAI_MODEL'))
 
-async def query_gen_memory(**kwargs):
+def query_gen_memory(state : SupervisorState):
     """Rephrase a query based on the given text history while preserving context and including relevant details.
 
     Args:
@@ -19,8 +19,8 @@ async def query_gen_memory(**kwargs):
     Returns:
         str: The rephrased query.
     """
-    memory = kwargs['memory']
-    query = kwargs['query']
+    memory = state['memory']
+    query = state['query']
     history = " "
     for messages in memory:
         history = history + f"{messages['User']}: {messages['Message']} \n"
@@ -42,8 +42,9 @@ async def query_gen_memory(**kwargs):
     )
     parser = StrOutputParser()
     chain = prompt | model | parser
-    query = await chain.ainvoke({'memory':memory,'query':query})
-    return query
+    query = chain.invoke({'memory':memory,'query':query})
+    state['query'] = query
+    return state
 
 if __name__ == '__main__':
     memory = [
@@ -119,4 +120,8 @@ Currency impact: A weaker foreign‑currency environment relative to the U.S. do
 State‑aid tax obligation: Apple disclosed a pending €14.2 billion (≈ $15.8 billion) payment to Ireland, held in escrow and unavailable for general use.
 These factors collectively shaped Apple’s performance and strategic outlook for 2024.'''},
     {"User": "You", "Message": "rate it out of 10"}]
-    print(asyncio.run(query_gen_memory(query = 'rate it out of 10',memory = memory)))
+    state = SupervisorState(
+        query='rate it out of 10',
+        memory=memory
+    )
+    print(query_gen_memory(state))
