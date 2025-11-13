@@ -55,7 +55,7 @@ def fetch_real_time_data(tickers : List[str], data_type : List[str], period : st
 fetch_tool = StructuredTool.from_function(
     func = fetch_real_time_data,
     name = "RealTimeDataTool",
-    description = """Fetch any financial data for a given ticker.
+    description = """Fetch any financial real time data for a given ticker.
     tickers: list of ticker symbols (e.g. ['AAPL', 'GOOG'])
     data_type : list of metrics (e.g. ['price','market_cap','volume'])
     period: period to fetch data for must be one of: 1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd, max

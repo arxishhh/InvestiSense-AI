@@ -11,5 +11,6 @@ def safe_fallback(function,**kwargs):
     try:
         return function(**kwargs)
     except Exception as e:
-        print(e)
-        return 'Tell the user LLM Failed due to overload please try again later'
+        state = kwargs['state']
+        state['response']="LLM Failed due to overload please try again later."
+        return state

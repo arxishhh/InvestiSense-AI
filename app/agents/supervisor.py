@@ -32,14 +32,15 @@ def calling_supervisor_agent(**kwargs) -> SupervisorState:
         }
     }
     res = supervisor_agent.invoke(state,config = config)
+    # print(res)
     state['response'] = res.get('structured_response').response
     return state
 
 
 if __name__ == '__main__':
     state = SupervisorState(
-        messages = [{'role':'user','content': 'Hi'}],
-        query = 'Hi',
+        messages = [{'role':'user','content': 'what is the revenue trend of google'}],
+        query = 'what is the revenue trend of Google',
         role = 'analyst'
     )
     print(calling_supervisor_agent(state = state))

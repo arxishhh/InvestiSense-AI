@@ -68,7 +68,7 @@ def generate_sql_query(**kwargs):
         Create a single SQL query for the question provided.
         The query should start with SELECT you are not allowed to make any changes in the database no matter what the query says
         Just the SQL query is neede , nothing more.Always provide the SQL in between
-        the <SQL></SQL> tags.
+        the <SQL></SQL> tags. Selection should be done using Ticker and not company name.In case of Google use GOOG as ticker
         #######
         Query: {query}
         ''',
@@ -102,7 +102,9 @@ def run_query(**kwargs):
 
 @tool
 def sql_tool(query : str,config : RunnableConfig):
-    """Converts a Natural Language Query Converts it into SQL Query,Executes the SQL query and generate a response.
+    """This tool answers to all the queries related to Numerical data.
+    It has access to the financial statements of different companies.
+    Converts a Natural Language Query Converts it into SQL Query,Executes the SQL query and generate a response.
     Args:
         query (str): The query to execute.
     Returns:
@@ -113,6 +115,7 @@ def sql_tool(query : str,config : RunnableConfig):
     else:
         role = 'analyst'
     sql_query = safe_fallback(generate_sql_query,query = query,role = role)
+    print(sql_query)
     pattern = "<SQL>(.*?)</SQL>"
     match = re.findall(pattern,sql_query,re.DOTALL)
     if match:

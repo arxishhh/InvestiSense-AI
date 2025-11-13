@@ -88,7 +88,8 @@ def format_markdown(**kwargs):
 rag_tool = StructuredTool.from_function(
     func = rag,
     name = 'RagTool',
-    description = """Retrieve and generate a response based on a query.
+    description = """Retrieve and generate a response based on a query.This tool has access to 10-K filings of different companies and 
+    can answer a query which requires textual data.
     Args:
     query (str): The query to be processed.
     Returns:
