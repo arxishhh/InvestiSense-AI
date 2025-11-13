@@ -39,6 +39,7 @@ if user_query and len(str(user_query).strip()) != 0:
     # response = requests.post( 'http://127.0.0.1:8000/chat', json=payload)
     # result = json.loads(response.content.decode('utf-8'))
     result = safe_fallback(answer,state = state)
+    print(result)
     st.session_state.chat_history.append({"User": "Assistant", "Message": result['response']})
 
 for chat in st.session_state.chat_history:
