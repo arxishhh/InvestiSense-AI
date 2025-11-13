@@ -38,11 +38,7 @@ if user_query and len(str(user_query).strip()) != 0:
     state = SupervisorState(query =  user_query, role = st.session_state.role, memory = st.session_state.chat_history[:10 if length_of_history > 10 else length_of_history])
     # response = requests.post( 'http://127.0.0.1:8000/chat', json=payload)
     # result = json.loads(response.content.decode('utf-8'))
-    start = time.time()
-    st.write(start)
     result = safe_fallback(answer,state = state)
-    end = time.time()
-    st.write(end)
     st.write(f'Time Taken {end-start}')
     st.session_state.chat_history.append({"User": "Assistant", "Message": result['response']})
 
