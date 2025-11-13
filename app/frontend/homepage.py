@@ -40,12 +40,12 @@ if user_query and len(str(user_query).strip()) != 0:
     # result = json.loads(response.content.decode('utf-8'))
     result = safe_fallback(answer,state = state)
     print(result)
-    st.session_state.chat_history.append({"User": "Assistant", "Message": result['response']})
+    st.session_state.chat_history.append({"User": "Assistant", "Message": result['response'].replace("$", "\\$")})
 
 for chat in st.session_state.chat_history:
     if chat['User'] == 'You':
         with st.chat_message(name = 'user',width = 'stretch'):
-            st.write(chat['Message'])
+            st.write(chat['Message'],unsafe_allow_html = True)
     else:
         with st.chat_message(name = 'ai',width = 'stretch'):
-            st.write(chat['Message'])
+            st.write(chat['Message'],unsafe_allow_html = True)
