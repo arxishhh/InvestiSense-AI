@@ -1,5 +1,5 @@
 from langchain.tools import tool
-from schemas import FinancialToolState, SearchToolState, RealTimeToolState
+from src.agents.states import FinancialToolState, SearchToolState, RealTimeToolState
 from typing import List
 
 @tool
