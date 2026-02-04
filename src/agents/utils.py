@@ -1,113 +1,64 @@
-import requests
-from config import Config
-from langchain.agents import create_react_agent
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_core.prompts.chat import ChatPromptTemplate
-from fastapi.responses import JSONResponse
-from tools import (rag_tool,real_time_data_tool,search_tool,financial_tool)
-from nodes import (supervisor_node,data_extractor_node,analyzer_node,replier_node)
-from langgraph.graph import StateGraph,START,END
-import requests
+from edgar import *
+from langchain_classic.chains import MapReduceDocumentsChain
+from langchain_classic.chains.llm import LLMChain
+from langchain_text_splitters import CharacterTextSplitter
+from src.agents.service import get_prompt
+from langchain_core.prompts import PromptTemplate
+from langchain_groq import ChatGroq
+from dotenv import load_dotenv
+from src.config import Config
 
+load_dotenv()
 
-async def get_prompt(prompt_name : str) -> str:
+set_identity("arxishhh@gmail.com")
+llm = ChatGroq(
+    model=Config.GROQ_MODEL
+)
 
-    user = Config.GITHUB_USER
-    repo = Config.PROMPT_REPO
-    directory = Config.DIR
+def get_filing_text(query : str,ticker : str, years : List[str], sections : List[str])-> str:
+    company = Company(ticker)
+    filings = company.get_filings(form = '10-K')
+    filtered_filings = [
+        f for f in filings for y in years if y in str(f.filing_date)
+    ]
+    context = [
+        "Ticker : "+ticker+"\n"+str(f.filing_date)+f.obj()[f'Item {section}'] for section in sections for f in filtered_filings
+    ]
+    context = "\n".join(context)
+    summarized_context = summarizing_context(context)
+    return summarized_context
 
-    url = f"https://raw.githubusercontent.com/{user}/{repo}/main/{directory}/{prompt_name}.md"
-    try : 
-        prompt = requests.get(url).text
-    except Exception:
-        raise RuntimeError("Cannot Fetch The Required Prompt")
+def summarizing_context(query : str,context : str):
+    map_template = get_prompt('map').format(query = query)
+    reduce_template = get_prompt('reduce').format(query = query)
 
-    return prompt
-
-
-async def initialize_agent(agent : str,llm: ChatGoogleGenerativeAI,tools:list):
-    prompt = await get_prompt(prompt_name = agent)
-
-    system_prompt = ChatPromptTemplate(
-        [
-            ("system",prompt),
-            ("placeholder","{messages}")
-        ]
+    map_prompt = PromptTemplate.from_template(
+        prompt = map_template
+    )
+    reduce_prompt = PromptTemplate.from_template(
+        prompt = reduce_template
     )
 
-    agent = create_react_agent(
-        model = llm,
-        tools = tools,
-        prompt = system_prompt
+    map_chain = LLMChain(
+        prompt=map_prompt,
+        llm=llm
     )
 
-    return agent
+    reduce_chain = LLMChain(
+        prompt=reduce_prompt,
+        llm=llm
+    )
 
-async def intializing_graph() -> StateGraph:
+    map_reduce_chain = MapReduceDocumentsChain(
+        llm_chain=map_chain,
+        reduce_documents_chain=reduce_chain,
 
-    user = Config.GITHUB_USER
-    repo = Config.PROMPT_REPO
-
-    graph = StateGraph()
-    url = f"https://raw.githubusercontent.com/{user}/{repo}/main/node_registry.json"
-
-    try : 
-        node_registry = requests.get(url).json
-    
-    except Exception :
-        raise RuntimeError("Cannot Fetch Node Registry")
-
-    
-
-    for node_name,node in node_registry.items():
-        graph.add_node(node_name,node)
-        if node_name == "supervisor":
-            graph.add_edge(START,node_name)
-        
-    
-    graph.compile()
-    return graph
-
-async def collecing_agents(llm : ChatGoogleGenerativeAI) -> dict:
-
-    user = Config.GITHUB_USER
-    repo = Config.PROMPT_REPO
-
-    url = f"https://raw.githubusercontent.com/{user}/{repo}/main/agent_registry.json"
-    agents = {}
-    
-    try : 
-        agent_registry = requests.get(url).json()
-    except Exception:
-        raise RuntimeError("Cannot Fetch Agent Registry")
-    
-    for agent_name,tools in agent_registry.items():
-        agent = initialize_agent(llm=llm,tools=tools)
-        agents[agent_name] = agent
-
-    return agents
+    )
 
 
 
 
 
 
-
-
-    
-
-
-    
-         
-
-    
-
-    
-
-
-    
-    
-
-
-
-    
+if __name__ == "__main__":
+    print(get_filing_text("","AAPL",['2025','2024'],["1"]))
