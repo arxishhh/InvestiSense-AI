@@ -1,13 +1,45 @@
 from langchain.tools import tool
-from states import FinanceToolState, SearchToolState, RealTimeToolState, TickerResolverState, FilingToolState
-from typing import List
+from states import FinanceToolState, RealTimeToolState, TickerResolverState, FilingToolState
 import yfinance as yf
-# from ..config import Config
-
+from src.agents.utils import rag
+from edgar import *
+from src.config import Config
+import yfinance as yf
 
 @tool
-def filings_tool(state : FilingToolState):
-    query = state['query']
+def getFiling(state : FilingToolState):
+        
+        tickers = state['tickers']
+        years = state['years']
+        query = state['query']
+        sections = state['sections']
+        form = state['form']
+
+        set_identity(Config.IDENTITY)
+        
+        company = Company(ticker)
+        filings = company.get_filings(form=form)
+        context = []
+        for ticker in tickers:
+            company = Company(ticker)
+            filings = company.get_filings(form=form)
+            for f in filings:
+                for year in years:
+                    if year in str(f.filing_date):
+                        for section in sections:
+                            context.append(
+                                {
+                                    'ticker':ticker,
+                                    'year': year,
+                                    'form' : form,
+                                    'section' : f'Item {section}',
+                                    'content' : f.obj()[f'Item {section}']
+                                }
+                            )
+
+        if form == '8-K':
+            return context
+        return rag(query=query,context=context)
     
 
 @tool
@@ -19,8 +51,7 @@ def financial_statement_fetcher(state : FinanceToolState):
     
     :param state: It has four keys
     ticker : Ticker of the company.
-    start_year : Year from which the data is to be extracted
-    end_year : Year till which the data is to be extracted
+    years : Years for which you want to find the data
     type_of_statement : The statement you want to fetch balance sheets, cashflow statements, income_statement or ratios
     :type query: str
     """
@@ -56,9 +87,7 @@ def ticker_resolver(state : TickerResolverState) -> dict:
         res = yf.Search(com,max_results = 1).quotes
         company_data[com] = res[0]['symbol']
 
-    return company_data 
+    return company_data
 
-if __name__ == "__main__":
-    apple = yf.Ticker('aapl')
     
 

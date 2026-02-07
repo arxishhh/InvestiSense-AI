@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     URL_DATABASE : str
     GROQ_API_KEY : str
     GROQ_MODEL : str
+    IDENTITY : str
 
 
     model_config = SettingsConfigDict(

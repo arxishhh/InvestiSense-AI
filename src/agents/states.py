@@ -13,25 +13,19 @@ class AgentState(TypedDict):
     status : str = Field(default = "intermediate")
     current_process : str
     #Context
-    filing_data : str
-    financial_data : str
-    real_time_data : str
-    news : str
-    search : str
-    #Company Data
-    company_and_year= Dict[str, List[str]]
+    proofs : List[Dict[str,str]]
 
 class FilingToolState(BaseModel):
     query : str
-    ticker : str
+    tickers : List[str]
+    form : str
     years : List[str]
     sections : List[str]
     
 class FinanceToolState(BaseModel):
    ticker : str
-   start_year : str
-   end_year : str
-   type_of_statement : str
+   years : List[str]
+   sections : List[str]
 
 class RealTimeToolState(BaseModel):
     pass
@@ -43,8 +37,6 @@ class TickerResolverState(BaseModel):
     company_names : List[str] = Field(...,description = "This is the list of all the companies whose ticker we want to extract" \
     "to solve the query.")
 
-class PolygonAPIWrapperState(BaseModel):
-    pass
 
     
 
