@@ -23,12 +23,14 @@ class FilingToolState(BaseModel):
     sections : List[str]
     
 class FinanceToolState(BaseModel):
-   ticker : str
+   tickers : List[str]
    years : List[str]
-   sections : List[str]
+   values : List[str]
 
 class RealTimeToolState(BaseModel):
-    pass
+    tickers : List[str] 
+    period : str
+    data_type : List[str]
 
 class SearchToolState(BaseModel):
     query : str = Field(...,description="The information that we want to get from the internet.")
@@ -36,6 +38,9 @@ class SearchToolState(BaseModel):
 class TickerResolverState(BaseModel):
     company_names : List[str] = Field(...,description = "This is the list of all the companies whose ticker we want to extract" \
     "to solve the query.")
+
+class NewsToolState(BaseModel):
+    tickers : List[str]
 
 
     
