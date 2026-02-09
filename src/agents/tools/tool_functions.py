@@ -1,71 +1,134 @@
 from langchain.tools import tool
-from src.agents.tools.states import FinanceToolState, RealTimeToolState, TickerResolverState, FilingToolState, NewsToolState
+from src.agents.tools.states import CashFlowToolState,IncomeStatementToolState,BalanceSheetToolState, RealTimeToolState, TickerResolverState, TenKFilingToolState, NewsToolState, TenQFilingToolState
 import yfinance as yf
-from src.agents.tools.utils import rag
+from src.agents.utils import rag
 from edgar import *
 from src.config import Config
 import yfinance as yf
 import logging
 
 
-async def getFiling(state : FilingToolState):
-        
-        tickers = state.get('tickers',[])
-        years = state.get('years',[])
-        query = state.get('query'," ")
-        sections = state.get('sections',[])
-        form = state.get('form','10-K')
+async def getKFiling(state : TenKFilingToolState):
 
-        set_identity(Config.IDENTITY)
+    tickers = state.get('tickers',[])
+    years = state.get('years',[])
+    query = state.get('query'," ")
+    sections = state.get('sections',[])
+    
 
-        proofs = []
+    set_identity(Config.IDENTITY)
 
-        for ticker in tickers:
+    proofs = []
+
+    for ticker in tickers:
             
-            try :
-                company = Company(ticker)
-                filings = company.get_filings(form=form)
+        try :
+            company = Company(ticker)
+            filings = company.get_filings(form='10-K')
 
-                if not filings:
-                    continue
-
-                targetted_filings = [
-                    f for f in filings
-                    if any(year in str(f.filing_date) for year in years)
-                ]
-
-                for f in targetted_filings:
-                    try :
-                        filing_obj = f.obj()
-                        if not filing_obj :
-                            continue
-
-                        for section in sections:
-
-                            item_key = f"Item {section}"
-                            content = obj[item_key]
-
-                            proofs.append(
-                                {
-                                    'ticker' : ticker,
-                                    'time' : str(f.filing_date),
-                                    'source' : form,
-                                    'section':section,
-                                    'content': content
-                                })
-                    
-                    except Exception as e:
-                        logging.warning(f"Error fetching file for {f.accession_no}: {e}")
-                        continue
-            
-            except Exception as e:
-                logging.error(f"Failed to fetch data for {ticker} : {e}")
+            if not filings:
                 continue
 
-        return rag(query=query,context=proofs)
+            targetted_filings = [
+                f for f in filings
+                if any(year in str(f.filing_date) for year in years)
+            ]
+
+            for f in targetted_filings:
+                try :
+                    filing_obj = f.obj()
+                    if not filing_obj :
+                        continue
+
+                    for section in sections:
+
+                        item_key = f"Item {section}"
+                        content = obj[item_key]
+
+                        proofs.append(
+                            {
+                                'ticker' : ticker,
+                                'time' : str(f.filing_date),
+                                'source' : '10-K',
+                                'section':section,
+                                'content': content
+                            })
+                    
+                except Exception as e:
+                    logging.warning(f"Error fetching file for {f.accession_no}: {e}")
+                    continue
+            
+        except Exception as e:
+            logging.error(f"Failed to fetch data for {ticker} : {e}")
+            continue
+
+    return rag(query=query,context=proofs)
+
+async def getQFiling(state : TenQFilingToolState):
+
+    tickers = state.get('tickers',[])
+    years = state.get('years',[])
+    query = state.get('query'," ")
+    sections = state.get('sections',[])
+    
+
+    set_identity(Config.IDENTITY)
+
+    proofs = []
+
+    for ticker in tickers:
+            
+        try :
+            company = Company(ticker)
+            filings = company.get_filings(form='10-Q')
+
+            if not filings:
+                continue
+
+            targetted_filings = [
+                f for f in filings
+                if any(year in str(f.filing_date) for year in years)
+            ]
+
+            for f in targetted_filings:
+                try :
+                    filing_obj = f.obj()
+                    if not filing_obj :
+                        continue
+
+                    for section in sections:
+
+                        if '-' in section:
+                            _,num = section.split('-')
+                            item_key = f'Part II, Item {num}'
+
+                        else :
+                            item_key = f'Part I, Item {section}'
+                        content = obj[item_key]
+
+                        proofs.append(
+                            {
+                                'ticker' : ticker,
+                                'time' : str(f.filing_date),
+                                'source' : '10-Q',
+                                'section':section,
+                                'content': content
+                            })
+                    
+                except Exception as e:
+                    logging.warning(f"Error fetching file for {f.accession_no}: {e}")
+                    continue
+            
+        except Exception as e:
+            logging.error(f"Failed to fetch data for {ticker} : {e}")
+            continue
+
+    return rag(query=query,context=proofs)
+    
+
                 
                         
-async def getBalanceSheet(state : FinanceToolState):
+async def getBalanceSheet(state : BalanceSheetToolState):
 
     tickers = state.get('tickers',[])
     years = state.get('years',[])
@@ -103,7 +166,7 @@ async def getBalanceSheet(state : FinanceToolState):
 
 
 
-async def getIncomeStatement(state : FinanceToolState):
+async def getIncomeStatement(state : IncomeStatementToolState):
 
     tickers = state.get('tickers',[])
     years = state.get('years',[])
@@ -140,7 +203,7 @@ async def getIncomeStatement(state : FinanceToolState):
     return proofs
     
 
-async def getCashFlowStatements(state : FinanceToolState):
+async def getCashFlowStatements(state : CashFlowToolState):
     
     tickers = state.get('tickers',[])
     years = state.get('years',[])
@@ -279,13 +342,7 @@ async def tickerResolver(state : TickerResolverState) -> dict:
 
     return company_data
 
-if __name__ == "__main__":
-    print(getFiling({'tickers':['AAPL'],
-                               'years':['2025'],
-                               'sections':['1'],
-                               'form' : '10-K',
-                               'query' : 'What is the business startegy of Apple?'
-                               }))
+
 
     
 
