@@ -1,4 +1,4 @@
-from typing import TypedDict,Dict,List
+from typing import TypedDict,Dict,List,Any
 from pydantic import BaseModel,Field
 from langchain_core.messages import BaseMessage
 from uuid import UUID
@@ -6,15 +6,15 @@ from enum import Enum
 
 class AgentState(TypedDict):
     session_id : UUID = Field(default = UUID)
-
     query : str
     final_response : str
-    messages : List[BaseMessage]
+    # messages : List[BaseMessage]
     #WebSockets
-    status : str = Field(default = "intermediate")
-    current_process : str
+    # status : str = Field(default = "intermediate")
+    # current_process : str
     #Context
     proofs : List[Dict[str,str]]
+    formatted_proof : str
 
 
 
@@ -175,11 +175,6 @@ class TickerResolverState(BaseModel):
 class NewsToolState(BaseModel):
     tickers : List[str]
 
-class AuditorState(BaseModel):
-    prompt : str
-    query : str
-    done : bool 
-    iterations : int = 0
 
 
 

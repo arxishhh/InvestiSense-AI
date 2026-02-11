@@ -4,14 +4,13 @@ from langchain_core.tools import StructuredTool
 
 class ToolRegistry:
     def __init__(self):
-        self.all_tools = Dict[str, StructuredTool] = {}
+        self.all_tools : Dict[str, StructuredTool] = {}
 
     def format_proofs(self,proofs : List[Dict[str,Any]],is_dict : bool = False):
         pass
 
     def getAllTools(self) -> List[StructuredTool]:
-        tools_dir = [tool.name for tool in self.all_tools]
-        return list(self.all_tools.values()),tools_dir
+        return self.all_tools
 
     def registerTool(self,func_name :Callable,description : str,name : str, args_schema : BaseModel):
         

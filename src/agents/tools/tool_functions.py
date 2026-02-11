@@ -1,23 +1,15 @@
-from langchain.tools import tool
-from src.agents.tools.states import CashFlowToolState,IncomeStatementToolState,BalanceSheetToolState, RealTimeToolState, TickerResolverState, TenKFilingToolState, NewsToolState, TenQFilingToolState
+from src.agents.states import CashFlowMetric,IncomeStatementMetric,BalanceSheetMetric, TenQSECSection, TenKSECSection
 import yfinance as yf
 from src.agents.utils import rag
+from src.agents.utils import format_proofs
 from edgar import *
 from src.config import Config
 import yfinance as yf
 import logging
 
 
-def getKFiling(state : TenKFilingToolState):
-
-    tickers = state.get('tickers',[])
-    years = state.get('years',[])
-    query = state.get('query'," ")
-    sections = state.get('sections',[])
-    
-
+def getKFiling(query : str, tickers : List[str], years : List[str], sections : List[TenKSECSection]):
     set_identity(Config.IDENTITY)
-
     proofs = []
 
     for ticker in tickers:
@@ -61,17 +53,15 @@ def getKFiling(state : TenKFilingToolState):
         except Exception as e:
             logging.error(f"Failed to fetch data for {ticker} : {e}")
             continue
-
-    return rag(query=query,context=proofs)
-
-async def getQFiling(state : TenQFilingToolState):
-
-    tickers = state.get('tickers',[])
-    years = state.get('years',[])
-    query = state.get('query'," ")
-    sections = state.get('sections',[])
     
+    message = f"Fetched {' '.join(sections)} of 10-K for {' '.join(tickers)} years : {' '.join(years)}"
+    proofs = rag(query=query,context=proofs)
+    return {
+        'message' : message,
+        'proofs' : proofs
+    }
 
+def getQFiling(query : str, tickers : List[str], years : List[str],sections : List[TenQSECSection]):
     set_identity(Config.IDENTITY)
 
     proofs = []
@@ -123,22 +113,20 @@ async def getQFiling(state : TenQFilingToolState):
             logging.error(f"Failed to fetch data for {ticker} : {e}")
             continue
 
-    return rag(query=query,context=proofs)
-    
-
+    message = f"Fetched {' '.join(sections)} of 10-Q (All Quarters) for {' '.join(tickers)} years : {' '.join(years)}"
+    proofs = rag(query=query,context=proofs)
+    return {
+        'message' : message,
+        'proofs' : proofs
+    }
                 
                         
-async def getBalanceSheet(state : BalanceSheetToolState):
-
-    tickers = state.get('tickers',[])
-    years = state.get('years',[])
-    values = state.get('values',[])
-
+def getBalanceSheet(tickers : List[str], years : List[str], values : List[BalanceSheetMetric]):
     proofs = []
 
     for ticker in tickers:
         try:
-            company = yf.ticker(ticker)
+            company = yf.Ticker(ticker)
             balance_sheet = company.get_balance_sheet(as_dict = True, freq = 'quarterly')
 
             for time,stats in balance_sheet.items():
@@ -147,7 +135,8 @@ async def getBalanceSheet(state : BalanceSheetToolState):
 
                         facts = {}
                         for val in values:
-                            facts(val) = stats.get(val,None)
+                            key = val.value if hasattr(val, "value") else val
+                            facts[key] = stats.get(val, None)
                         
                         proofs.append(
                             {
@@ -161,22 +150,20 @@ async def getBalanceSheet(state : BalanceSheetToolState):
         except Exception as e:
            logging.error(f"Cannot fetch balance sheet for {ticker} : {e}")
            continue
-    
-    return proofs
+
+    message = f"Fetched {' '.join(values)} Balance Sheet of {' '.join(tickers)} for years : {' '.join(years)}"
+    return {
+        'message' : message,
+        'proofs' : proofs
+    }
 
 
 
-async def getIncomeStatement(state : IncomeStatementToolState):
-
-    tickers = state.get('tickers',[])
-    years = state.get('years',[])
-    values = state.get('values',[])
-
+def getIncomeStatement(tickers : List[str], years : List[str], values : List[IncomeStatementMetric]):
     proofs = []
-
     for ticker in tickers:
         try:
-            company = yf.ticker(ticker)
+            company = yf.Ticker(ticker)
             income_stmt = company.get_income_stmt(as_dict = True, freq = 'quarterly')
 
             for time,stats in income_stmt.items():
@@ -185,7 +172,8 @@ async def getIncomeStatement(state : IncomeStatementToolState):
 
                         facts = {}
                         for val in values:
-                            facts(val) = stats.get(val,None)
+                            key = val.value if hasattr(val, "value") else val
+                            facts[key] = stats.get(val, None)
                         
                         proofs.append(
                             {
@@ -200,20 +188,19 @@ async def getIncomeStatement(state : IncomeStatementToolState):
            logging.error(f"Cannot fetch income statement for {ticker} : {e}")
            continue
     
-    return proofs
+    message = f"Fetched {' '.join(values)} Income Statment of {' '.join(tickers)} for years : {' '.join(years)}"
+    return {
+        'message' : message,
+        'proofs' : proofs
+    }
     
 
-async def getCashFlowStatements(state : CashFlowToolState):
-    
-    tickers = state.get('tickers',[])
-    years = state.get('years',[])
-    values = state.get('values',[])
-
+def getCashFlowStatements(tickers : List[str],years : List[str],values : List[CashFlowMetric]):
     proofs = []
 
     for ticker in tickers:
         try:
-            company = yf.ticker(ticker)
+            company = yf.Ticker(ticker)
             cash_flow = company.get_cash_flow(as_dict = True, freq = 'quarterly')
 
             for time,stats in cash_flow.items():
@@ -222,7 +209,8 @@ async def getCashFlowStatements(state : CashFlowToolState):
 
                         facts = {}
                         for val in values:
-                            facts(val) = stats.get(val,None)
+                            key = val.value if hasattr(val, "value") else val
+                            facts[key] = stats.get(val, None)
                         
                         proofs.append(
                             {
@@ -237,15 +225,14 @@ async def getCashFlowStatements(state : CashFlowToolState):
            logging.error(f"Cannot fetch cash flow for {ticker} : {e}")
            continue
     
-    return proofs
+    message = f"Fetched {' '.join(values)} Cash Flow Statement of {' '.join(tickers)} for years : {' '.join(years)}"
+    return {
+        'message' : message,
+        'proofs' : proofs
+    }
 
 
-async def realTimeDataFetcher(state : RealTimeToolState):
-
-    tickers = state.get('tickers',[])
-    period = state.get('period','')
-    data_type = state.get('data_type',[])
-
+def realTimeDataFetcher(tickers : List[str],period : str,data_type : List[str]):
     proofs = []
 
     for ticker in tickers:
@@ -272,7 +259,7 @@ async def realTimeDataFetcher(state : RealTimeToolState):
                     try:
                         ticker_data[d] = mapping[d]()
                     except Exception:
-                        ticker_data[d] = f"Could not fetch {d} for {t}. The symbol may be invalid or delisted."
+                        ticker_data[d] = f"Could not fetch {d} for {ticker}. The symbol may be invalid or delisted."
                 else:
                     ticker_data[d] = f'Invalid data type: {d}'
             proofs.append(
@@ -286,11 +273,15 @@ async def realTimeDataFetcher(state : RealTimeToolState):
         except Exception as e:
             logging.warning(f"Ticker {ticker} not found or may be delisted. : {e}")
             continue
+    message = f"Fetched Real Time {' '.join(data_type)} for {' '.join(tickers)}"
 
-    return proofs
+    return {
+        'message':message,
+        'proofs':proofs
+    }
 
-async def newsFetcher(state : NewsToolState):
-    tickers = " ".join(state.get("tickers",[]))
+def newsFetcher(tickers : List[str]):
+    tickers = " ".join(tickers)
     proofs = []
     try :
         companies = yf.Tickers(tickers)
@@ -316,20 +307,14 @@ async def newsFetcher(state : NewsToolState):
             logging.warning(f"Cannot fetch news for {tickers} : {e}")
     except Exception as e:
         logging.error(f"Error finding {tickers} : {e}")
-    return proofs
 
+    message = f"Fetched Latest News For {' '.join(tickers)}"
+    return {
+        "message" : message,
+        "proofs" : proofs
+    }
 
-async def tickerResolver(state : TickerResolverState) -> dict:
-    """
-    This tools helps to find tickers of different companies using yfinance api.
-    
-    :param state: List of all the companies whose ticker has to be resolved.
-    :type state: TickerResolverState
-    :return: Returns a dict of companies and their tickers
-    :rtype: dict
-    """
-    company_names = state.get('company_names',[])
-
+def tickerResolver(company_names : List[str]) -> dict:
     company_data = {}
 
     for com in company_names:
@@ -337,10 +322,14 @@ async def tickerResolver(state : TickerResolverState) -> dict:
             res = yf.Search(com,max_results = 1).quotes
             company_data[com] = res[0]['symbol']
         except Exception as e:
-            logging.error(f"Cannot fetch ticker for {com}: {e}")
+            logging.error(f"Cannot fetch ticker for {com} : {e}")
             continue
-
-    return company_data
+    
+    message = f"Fetched Tickers {str(company_data)}"
+    return {
+        'message': message,
+        'proofs' : [company_data]
+    }
 
 
 

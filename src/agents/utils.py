@@ -4,10 +4,8 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
-from src.config import Config
 from uuid import uuid4
 from typing import List,Dict,Any
-from src.agents.service import get_prompt
 
 load_dotenv()
 
@@ -25,6 +23,7 @@ vector_store = Chroma(
         collection_name = str(uuid4()),
         embedding_function=embeddings
     )
+
 
 
 
@@ -64,24 +63,17 @@ def rag(query : str,context : List):
 def format_proofs(proofs : List[Dict[str,Any]]) -> str:
 
     markdown = ""
+    
     for proof in proofs:
-        markdown += f"###{proof.get('ticker')} | ###{proof.get('time')} | ###{proof.get('source')} | ###{proof.get('section','')}"
-        if type(proof.get('content')) == list:
-            markdown += f"\n{proof.get('content')}"
-        else:
-            for key,value in proof.get('content'):
-                markdown += f"\n###{key} : {value}\n"
-        markdown +='\n'
+        markdown += f"### {proof.get('ticker','')} | ### {proof.get('time','')} | ### {proof.get('source','')} | ### {proof.get('section','')}"
+        if type(proof.get('content')) == str:
+            markdown += f"<br>{proof.get('content')}"
+        elif type(proof.get('content')) == dict:
+            for key,value in proof.get('content').items():
+                markdown += f"<br>### {key} : {value}<br>"
+        markdown +='<br>'
     
     return markdown
 
-def create_auditor_state(query : str):
-    prompt = get_prompt(prompt_name='auditor')
 
 
-    return {
-        'prompt':prompt,
-        'query':query,
-            'done':False,
-            'iterations':0,
-            }
