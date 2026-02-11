@@ -7,7 +7,7 @@ from langchain_core.documents import Document
 from src.config import Config
 from uuid import uuid4
 from typing import List,Dict,Any
-
+from src.agents.service import get_prompt
 
 load_dotenv()
 
@@ -76,7 +76,12 @@ def format_proofs(proofs : List[Dict[str,Any]]) -> str:
     return markdown
 
 def create_auditor_state(query : str):
-    return {'query':query,
+    prompt = get_prompt(prompt_name='auditor')
+
+
+    return {
+        'prompt':prompt,
+        'query':query,
             'done':False,
-            'iterations':0
+            'iterations':0,
             }

@@ -1,4 +1,4 @@
-from tools.registry import ToolRegistry
+from src.agents.tools.registry import ToolRegistry
 from src.agents.tools.tool_functions import *
 from src.agents.tools.states import *
 
@@ -68,6 +68,7 @@ tickerTool = registry.registerTool(
 )
 
 AuditorTools = [tickerTool,kfilingTool,qfilingTool]
+AuditorToolsDir = {'Ticker Tool'}
 FinancerTools = [balanceSheetTool,incomeStatementTool,cashFlowTool]
 NewsRoomTools = [tickerTool,newsTool,realTimeTool]
 

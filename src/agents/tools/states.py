@@ -176,9 +176,11 @@ class NewsToolState(BaseModel):
     tickers : List[str]
 
 class AuditorState(BaseModel):
+    prompt : str
     query : str
     done : bool 
     iterations : int = 0
+
 
 
     

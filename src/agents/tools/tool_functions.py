@@ -8,7 +8,7 @@ import yfinance as yf
 import logging
 
 
-async def getKFiling(state : TenKFilingToolState):
+def getKFiling(state : TenKFilingToolState):
 
     tickers = state.get('tickers',[])
     years = state.get('years',[])
@@ -43,7 +43,7 @@ async def getKFiling(state : TenKFilingToolState):
                     for section in sections:
 
                         item_key = f"Item {section}"
-                        content = obj[item_key]
+                        content = filing_obj[item_key]
 
                         proofs.append(
                             {
@@ -104,7 +104,7 @@ async def getQFiling(state : TenQFilingToolState):
 
                         else :
                             item_key = f'Part I, Item {section}'
-                        content = obj[item_key]
+                        content = filing_obj[item_key]
 
                         proofs.append(
                             {

@@ -10,7 +10,8 @@ class ToolRegistry:
         pass
 
     def getAllTools(self) -> List[StructuredTool]:
-        return list(self.all_tools.values())
+        tools_dir = [tool.name for tool in self.all_tools]
+        return list(self.all_tools.values()),tools_dir
 
     def registerTool(self,func_name :Callable,description : str,name : str, args_schema : BaseModel):
         
