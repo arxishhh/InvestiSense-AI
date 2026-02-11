@@ -7,6 +7,7 @@ from langgraph.graph import StateGraph,START,END
 from src.agents.tools.states import AgentState
 import requests
 from typing import Dict,List
+import logging
 import requests
 from config import Config
 
@@ -20,29 +21,10 @@ def get_prompt(prompt_name : str) -> str:
     url = f"https://raw.githubusercontent.com/{user}/{repo}/main/{directory}/{prompt_name}.md"
     try : 
         prompt = requests.get(url).text
-    except Exception:
-        raise RuntimeError("Cannot Fetch The Required Prompt")
+    except Exception as e :
+        raise logging.error(f"Cannot Fetch The Prompt {prompt_name} : {e}")
 
     return prompt
-
-
-def initialize_agent(agent : str,llm: ChatGoogleGenerativeAI,tools:list):
-    prompt = get_prompt(prompt_name = agent)
-
-    system_prompt = ChatPromptTemplate(
-        [
-            ("system",prompt),
-            ("placeholder","{messages}")
-        ]
-    )
-
-    agent = create_react_agent(
-        model = llm,
-        tools = tools,
-        prompt = system_prompt
-    )
-
-    return agent
 
 def intializing_graph() -> StateGraph:
 
@@ -55,8 +37,8 @@ def intializing_graph() -> StateGraph:
     try : 
         node_registry = requests.get(url).json
     
-    except Exception :
-        raise RuntimeError("Cannot Fetch Node Registry")
+    except Exception as e :
+        raise logging.error(f"Cannot Fetch Node Registry : {e}")
 
     
 
@@ -71,25 +53,6 @@ def intializing_graph() -> StateGraph:
     
     graph.compile()
     return graph
-
-async def collecing_agents(llm : ChatGoogleGenerativeAI) -> dict:
-
-    user = Config.GITHUB_USER
-    repo = Config.PROMPT_REPO
-
-    url = f"https://raw.githubusercontent.com/{user}/{repo}/main/agent_registry.json"
-    agents = {}
-    
-    try : 
-        agent_registry = requests.get(url).json()
-    except Exception:
-        raise RuntimeError("Cannot Fetch Agent Registry")
-    
-    for agent_name,tools in agent_registry.items():
-        agent = initialize_agent(llm=llm,tools=tools)
-        agents[agent_name] = agent
-
-    return agents
 
 
 
