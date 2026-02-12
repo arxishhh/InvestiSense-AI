@@ -1,5 +1,8 @@
 from src.agents.service import build_tools
 from typing import Dict, List,Any
+from src.config import Config
+from langgraph import StateGraph, START, END
+
 
 tools = build_tools()
 
@@ -24,6 +27,20 @@ def tool_call_loop(tool_calls : List[Dict[str,Any]]):
         'proofs' : proofs,
         'message' : message
     }
+
+def intializing_graph() -> StateGraph:
+
+    user = Config.GITHUB_USER
+    repo = Config.PROMPT_REPO
+
+    graph = StateGraph()
+    
+    graph.add_node(node_name,node)
+    
+        
+    
+    graph.compile()
+    return graph
 
             
 

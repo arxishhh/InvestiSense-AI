@@ -15,6 +15,7 @@ class AgentState(TypedDict):
     #Context
     proofs : List[Dict[str,str]]
     formatted_proof : str
+    analysis : str
 
 
 

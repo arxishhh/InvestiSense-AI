@@ -1,14 +1,13 @@
 import requests
 from langgraph.graph import StateGraph,START,END
-from langchain_core.prompts import PromptTemplate
 import requests
-from typing import Dict,List
 import logging
 import requests
 from src.agents.tools.registry import ToolRegistry
 from src.agents.tools.tool_functions import *
 from src.agents.states import *
 from src.config import Config
+
 
 
 def get_prompt(prompt_name : str) -> str:
@@ -21,7 +20,7 @@ def get_prompt(prompt_name : str) -> str:
     try : 
         template = requests.get(url).text
     except Exception as e :
-        raise logging.error(f"Cannot Fetch The Prompt {prompt_name} : {e}")
+        logging.error(f"Cannot Fetch The Prompt {prompt_name} : {e}")
 
     return template
 
@@ -31,23 +30,9 @@ def intializing_graph() -> StateGraph:
     repo = Config.PROMPT_REPO
 
     graph = StateGraph()
-    url = f"https://raw.githubusercontent.com/{user}/{repo}/main/node_registry.json"
-
-    try : 
-        node_registry = requests.get(url).json
     
-    except Exception as e :
-        raise logging.error(f"Cannot Fetch Node Registry : {e}")
-
+    graph.add_node(node_name,node)
     
-
-    for node_name,node in node_registry.items():
-        graph.add_node(node_name,node)
-        if node_name == "supervisor":
-            graph.add_edge(START,node_name)
-        
-        if node_name == "replier":
-            graph.add_edge(node_name,END)
         
     
     graph.compile()
@@ -111,10 +96,19 @@ def build_tools():
     description="Finds ticker for the given companies.",
     args_schema=TickerResolverState)
 
+    searchTool = registry.registerTool(
+        func_name=search,
+        name='search',
+        description="Finds articles based on the given query",
+        args_schema=SearchToolState
+    )
+
+
+
     directory = {
         "AuditorTools" : [tickerTool,kfilingTool,qfilingTool],
         "FinancerTools" : [balanceSheetTool,incomeStatementTool,cashFlowTool],
-        "NewsRoomTools" : [tickerTool,newsTool,realTimeTool],
+        "NewsRoomTools" : [tickerTool,newsTool,realTimeTool,searchTool],
         "AllTools" : registry.getAllTools()
     }
 

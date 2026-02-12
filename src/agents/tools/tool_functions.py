@@ -1,11 +1,14 @@
 from src.agents.states import CashFlowMetric,IncomeStatementMetric,BalanceSheetMetric, TenQSECSection, TenKSECSection
 import yfinance as yf
 from src.agents.utils import rag
-from src.agents.utils import format_proofs
+from langchain_community.retrievers import TavilySearchAPIRetriever
 from edgar import *
 from src.config import Config
 import yfinance as yf
 import logging
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def getKFiling(query : str, tickers : List[str], years : List[str], sections : List[TenKSECSection]):
@@ -39,9 +42,10 @@ def getKFiling(query : str, tickers : List[str], years : List[str], sections : L
 
                         proofs.append(
                             {
+                                'type':'filing',
                                 'ticker' : ticker,
                                 'time' : str(f.filing_date),
-                                'source' : '10-K',
+                                'source' : 'SEC 10-K',
                                 'section':section,
                                 'content': content
                             })
@@ -98,6 +102,7 @@ def getQFiling(query : str, tickers : List[str], years : List[str],sections : Li
 
                         proofs.append(
                             {
+                                'type':'filing',
                                 'ticker' : ticker,
                                 'time' : str(f.filing_date),
                                 'source' : '10-Q',
@@ -140,6 +145,7 @@ def getBalanceSheet(tickers : List[str], years : List[str], values : List[Balanc
                         
                         proofs.append(
                             {
+                                'type':'sheets',
                                 'ticker':ticker,
                                 'time':str(time),
                                 'source':'Balance Sheet',
@@ -177,6 +183,7 @@ def getIncomeStatement(tickers : List[str], years : List[str], values : List[Inc
                         
                         proofs.append(
                             {
+                                'type':'sheets',
                                 'ticker':ticker,
                                 'time':str(time),
                                 'source':'Income Statements',
@@ -214,6 +221,7 @@ def getCashFlowStatements(tickers : List[str],years : List[str],values : List[Ca
                         
                         proofs.append(
                             {
+                                'type':'sheets',
                                 'ticker':ticker,
                                 'time':str(time),
                                 'source':'Cash Flow',
@@ -264,9 +272,10 @@ def realTimeDataFetcher(tickers : List[str],period : str,data_type : List[str]):
                     ticker_data[d] = f'Invalid data type: {d}'
             proofs.append(
                 {
+                    'type':'market_data',
                     'ticker':ticker,
                     'time':period,
-                    'source':'Real Time',
+                    'source':'YFinance',
                     'content':ticker_data
                 }
             )
@@ -293,14 +302,15 @@ def newsFetcher(tickers : List[str]):
             for ticker,value in news.items():
 
                 company_news = ""
-                for i in range(min(len(value),5)):
-                    company_news = company_news+value[i].get('content').get('summary')+'\n'
+                for i in range(len(value)):
+                    company_news = company_news+f"{value[i].get('content').get('title')}\n{value[i].get('content').get('summary')}\n"
                 
                 proofs.append(
                     {
+                        'type':'news',
                         'tickers':ticker,
                         'time':"latest",
-                        'source':'News',
+                        'source':'YFinance News',
                         'content':company_news
                     }) 
         except Exception as e:
@@ -314,6 +324,34 @@ def newsFetcher(tickers : List[str]):
         "proofs" : proofs
     }
 
+def search(query : str):
+
+    proofs = []
+    message = ""
+    try :
+        retriever = TavilySearchAPIRetriever(k = 10
+                                            ,include_domains= ["reuters.com","bloomberg.com","nasdaq.com","marketwatch.com","forbes.com","finance.yahoo.com",
+                                                               "barchart.com","cnbc.com","tradersunion.com"]
+                                            ,exclude_domains = ["reddit.com","youtube.com","twitter.com","x.com","quora.com","instagram.com","facebook.com"])
+        result = retriever.invoke(query)
+        for res in result:
+            data = res.metadata
+            if data.get('score') > 0.85:
+                proofs.append({
+                    'type':'search',
+                'source':data.get('source',""),
+                'content':res.page_content})
+        message = message+f"Fetched online results for {query}"
+    except Exception as e:
+        message = f"Failed to search for {query}"
+        logging.error(f"{message} : {e}")
+
+    
+    return {
+        'message':message,
+        'proofs':proofs
+    }
+    
 def tickerResolver(company_names : List[str]) -> dict:
     company_data = {}
 
@@ -331,6 +369,8 @@ def tickerResolver(company_names : List[str]) -> dict:
         'proofs' : [company_data]
     }
 
+if __name__ == "__main__":
+    print(newsFetcher(tickers=['AAPL']))
 
 
     

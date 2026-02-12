@@ -65,13 +65,13 @@ def format_proofs(proofs : List[Dict[str,Any]]) -> str:
     markdown = ""
     
     for proof in proofs:
-        markdown += f"### {proof.get('ticker','')} | ### {proof.get('time','')} | ### {proof.get('source','')} | ### {proof.get('section','')}"
+        markdown += f"TICKER : {proof.get('ticker','')} | TIME : {proof.get('time','')} | SOURCE : {proof.get('source','')} | {proof.get('section','')}"
         if type(proof.get('content')) == str:
-            markdown += f"<br>{proof.get('content')}"
+            markdown += f"\n{proof.get('content')}"
         elif type(proof.get('content')) == dict:
             for key,value in proof.get('content').items():
-                markdown += f"<br>### {key} : {value}<br>"
-        markdown +='<br>'
+                markdown += f"\n {key} : {value}\n"
+        markdown +='\n'
     
     return markdown
 

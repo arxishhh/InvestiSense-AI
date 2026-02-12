@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     GROQ_API_KEY : str
     GROQ_MODEL : str
     IDENTITY : str
+    TAVILY_API_KEY : str
 
 
     model_config = SettingsConfigDict(
