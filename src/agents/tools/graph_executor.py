@@ -14,7 +14,8 @@ def intializing_graph() -> StateGraph:
     graph.add_node('replier',replier_node)
 
     graph.add_edge(START,'supervisor')
-    
+    graph.add_edge('replier',END)
+
     graph = graph.compile()
     return graph
 

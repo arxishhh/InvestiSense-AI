@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from src.agents.states import AgentState
+from src.agents.states import AgentState,SupervisorState
 from langgraph.types import Command
 from src.agents.utils import format_proofs
 from src.agents.service import get_prompt
@@ -7,7 +7,10 @@ from langchain_core.prompts import PromptTemplate
 from src.agents.service import build_tools
 from src.agents.executor import tool_call_loop
 from langchain_groq import ChatGroq
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langgraph.types import Command
 import logging
+import os
 
 load_dotenv()
 tools = build_tools()
@@ -18,15 +21,34 @@ NewsRoomTools = tools.get('NewsRoomTools',[])
 llm = ChatGroq(
     model='openai/gpt-oss-120b'
 )
+supervisorLLM = ChatGoogleGenerativeAI(
+    model="gemini-2.5-flash",
+    temperature=0,
+    google_api_key=os.getenv('GEMINI_API_KEY')
+)
 
 def supervisor_node(state : AgentState):
-    pass
+    
+    template = get_prompt("supervisor")
+    status_messages = "FETCHED 10-K FILING SECTION RISK FACTORS FOR APPLE 2022,2023,2024 FETCHED BALANCE SHEET FOR APPLE FOR 2022,2023,2024 ANALYZED THE DATA GIVEN"
+
+    prompt = PromptTemplate(
+        template=template,
+        input_variables=['query','proofs']
+    )
+
+    invoke_prompt = prompt.invoke({
+        'query':state['query'],
+        'proofs':status_messages
+    })
+    response = supervisorLLM.with_structured_output(SupervisorState).invoke(invoke_prompt)
+    print(response)
 
 def auditor_node(state : AgentState):
 
     query = state.get('query')
     template = get_prompt('auditor')
-    message = ""
+    messages = ""
     proofs = []
     done = False
 
@@ -39,11 +61,12 @@ def auditor_node(state : AgentState):
 
     while not done and iterations <= 5:
         invoke_prompt = prompt.invoke(
-            {'query':query,'proofs':message}
+            {'query':query,'proofs':messages}
         )
 
         llm_with_tools = llm.bind_tools(AuditTools)
         response = llm_with_tools.invoke(invoke_prompt)
+        print(response.tool_calls)
 
         if response.content == 'DONE' or not response.tool_calls:
             done = True
@@ -51,19 +74,29 @@ def auditor_node(state : AgentState):
         else :
             tool_calls = response.tool_calls
             tool_response = tool_call_loop(tool_calls=tool_calls)
-            message = message + tool_response.get('message')
+            messages = f"{messages}  {tool_response.get('message')}"
             proofs = proofs+tool_response.get('proofs',[])
 
         iterations+=1
     
-    state['proofs'] = state.get('proofs',"")+proofs
-    state['formatted_proof'] = state.get('formatted_proof',"")+format_proofs(proofs)
-    return state
+    
+    formatted_proofs = state['formatted_proofs']+"\n"+format_proofs(proofs)
+    proofs = state['proofs']+proofs
+    status_messages =  state['status_messages']+" "+messages
+
+
+    return Command(
+        goto='supervisor',
+        update={
+                "proofs":proofs,
+                "formatted_proofs":formatted_proofs,
+                "status_messages":status_messages
+        })
 
 def financer_node(state : AgentState):
     query = state.get('query')
     template = get_prompt('financer')
-    message = ""
+    messages = ""
     proofs = []
     done = False
 
@@ -76,7 +109,7 @@ def financer_node(state : AgentState):
 
     while not done and iterations <= 5:
         invoke_prompt = prompt.invoke(
-            {'query':query,'proofs':message}
+            {'query':query,'proofs':messages}
         )
 
         llm_with_tools = llm.bind_tools(FinancerTools)
@@ -88,20 +121,28 @@ def financer_node(state : AgentState):
         else :
             tool_calls = response.tool_calls
             tool_response = tool_call_loop(tool_calls=tool_calls)
-            message = message + tool_response.get('message')
+            messages = f"{messages}  {tool_response.get('message')}"
             proofs = proofs+tool_response.get('proofs',[])
 
         iterations+=1
-    
-    state['proofs'] = state.get('proofs',"")+proofs
-    state['formatted_proof'] = state.get('formatted_proof',"")+format_proofs(proofs)
-    return state
+        
+    formatted_proofs = state['formatted_proofs']+"\n"+format_proofs(proofs)
+    proofs = state['proofs']+proofs
+    status_messages =  state['status_messages']+" "+messages
+
+    return Command(
+        goto='supervisor',
+        update={
+                "proofs" : proofs,
+                "formatted_proofs" : formatted_proofs,
+                "status_messages" : status_messages
+        })
 
 def newsroom_node(state : AgentState):
 
     query = state.get('query')
     template = get_prompt('newsroom')
-    message = ""
+    messages = ""
     proofs = []
     done = False
 
@@ -114,7 +155,7 @@ def newsroom_node(state : AgentState):
 
     while not done and iterations <= 5:
         invoke_prompt = prompt.invoke(
-            {'query':query,'proofs':message}
+            {'query':query,'proofs':messages}
         )
 
         llm_with_tools = llm.bind_tools(NewsRoomTools)
@@ -126,40 +167,46 @@ def newsroom_node(state : AgentState):
         else :
             tool_calls = response.tool_calls
             tool_response = tool_call_loop(tool_calls=tool_calls)
-            message = message + tool_response.get('message')
+            messages = f"{messages}  {tool_response.get('message')}"
             proofs = proofs+tool_response.get('proofs',[])
 
         iterations+=1
-    
-    state['proofs'] = state.get('proofs',"")+proofs
-    state['formatted_proof'] = state.get('formatted_proof',"")+format_proofs(proofs)
-    return state
+    proofs = state['proofs']+proofs
+    formatted_proofs = f"{state['formatted_proofs']} \n {format_proofs(proofs)}"
+    status_messages = f"{state['status_messages']} {messages}"
+    return Command(
+        goto='supervisor',
+        update={
+                "proofs" : proofs,
+                "formatted_proofs" : formatted_proofs,
+                "status_messages" : status_messages
+        })
 
 
 def analyzer_node(state : AgentState):
 
-    proofs = state.get("formatted_proof"," ")
+    proofs = state['formatted_proofs']
     template = get_prompt('analyser')
 
     prompt = PromptTemplate(
         template=template,
         input_variables=['query','proofs']
     )
-    invoke_prompt = prompt.invoke({'query':state.get('query'," "),
+    invoke_prompt = prompt.invoke({'query':state['query'],
                                    'proofs':proofs})
     
     response = llm.invoke(invoke_prompt)
 
-    state['analysis'] = response.content
-
-    return state
-
-
+    return Command(
+        goto='replier',
+        update={
+                "analysis" : response.content
+        })
 
 def replier_node(state : AgentState):
     
-    query = state.get('query'," ")
-    analysis = state.get('analysis'," ")
+    query = state['query']
+    analysis = state.get['analysis']
 
     template = get_prompt('replier')
 
@@ -179,11 +226,11 @@ def replier_node(state : AgentState):
 
 
 if __name__ == "__main__":
-    state = newsroom_node({
-        'query':"Why is NVDA volatile today despite positive news?",
+    state = supervisor_node({
+        'query':"Analyze whether Apple’s rising liabilities between 2022 and 2024 are discussed as a financial risk in its 10-K filings.",
         'proofs':[],
-        'formatted_proof':"",})
-    state = analyzer_node(state)
-    print(state['analysis'])
-    print(replier_node(state)['final_response'])
-    
+        'formatted_proofs':"",
+        'status_messages':"",
+        'analysis':""
+        })
+    print(state)

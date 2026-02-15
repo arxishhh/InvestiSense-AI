@@ -14,6 +14,7 @@ load_dotenv()
 def getKFiling(query : str, tickers : List[str], years : List[str], sections : List[TenKSECSection]):
     set_identity(Config.IDENTITY)
     proofs = []
+    message = ""
 
     for ticker in tickers:
             
@@ -37,10 +38,12 @@ def getKFiling(query : str, tickers : List[str], years : List[str], sections : L
 
                     for section in sections:
 
-                        item_key = f"Item {section}"
-                        content = filing_obj[item_key]
 
-                        proofs.append(
+                        part,num = section.split("-")
+                        item_key = f"part_{part}_item_{num}"
+                        content = filing_obj[item_key]
+                        if content:
+                            proofs.append(
                             {
                                 'type':'filing',
                                 'ticker' : ticker,
@@ -49,6 +52,9 @@ def getKFiling(query : str, tickers : List[str], years : List[str], sections : L
                                 'section':section,
                                 'content': content
                             })
+                            message = f"{message} Fetched {section} of {filing_obj.form} for {ticker} {filing_obj.filing_date}"
+                        else:
+                            message = f"{message} {section} of {filing_obj.form} not avaliable for {ticker} {filing_obj.filing_date}"
                     
                 except Exception as e:
                     logging.warning(f"Error fetching file for {f.accession_no}: {e}")
@@ -58,8 +64,9 @@ def getKFiling(query : str, tickers : List[str], years : List[str], sections : L
             logging.error(f"Failed to fetch data for {ticker} : {e}")
             continue
     
-    message = f"Fetched {' '.join(sections)} of 10-K for {' '.join(tickers)} years : {' '.join(years)}"
-    proofs = rag(query=query,context=proofs)
+    if proofs:
+        proofs = rag(query=query,context=proofs)
+
     return {
         'message' : message,
         'proofs' : proofs
@@ -69,6 +76,7 @@ def getQFiling(query : str, tickers : List[str], years : List[str],sections : Li
     set_identity(Config.IDENTITY)
 
     proofs = []
+    message = ""
 
     for ticker in tickers:
             
@@ -98,8 +106,8 @@ def getQFiling(query : str, tickers : List[str], years : List[str],sections : Li
 
                         else :
                             item_key = f'Part I, Item {section}'
-                        content = filing_obj[item_key]
 
+                        content = filing_obj[item_key]
                         proofs.append(
                             {
                                 'type':'filing',
@@ -109,17 +117,21 @@ def getQFiling(query : str, tickers : List[str], years : List[str],sections : Li
                                 'section':section,
                                 'content': content
                             })
-                    
+                        message = f"{message} Fetched {section} of 10-Q for {ticker} {filing_obj.filing_date}"
+
+                                                
                 except Exception as e:
+                    message = f"{message} {section} not avaliable for {ticker} {filing_obj.filing_date}"
                     logging.warning(f"Error fetching file for {f.accession_no}: {e}")
                     continue
             
         except Exception as e:
             logging.error(f"Failed to fetch data for {ticker} : {e}")
             continue
+    
+    if proofs:
+        proofs = rag(query=query,context=proofs)
 
-    message = f"Fetched {' '.join(sections)} of 10-Q (All Quarters) for {' '.join(tickers)} years : {' '.join(years)}"
-    proofs = rag(query=query,context=proofs)
     return {
         'message' : message,
         'proofs' : proofs
@@ -370,7 +382,7 @@ def tickerResolver(company_names : List[str]) -> dict:
     }
 
 if __name__ == "__main__":
-    print(newsFetcher(tickers=['AAPL']))
+    print(getKFiling(tickers=['TSLA']))
 
 
     

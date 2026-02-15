@@ -1,5 +1,4 @@
 import requests
-from langgraph.graph import StateGraph,START,END
 import requests
 import logging
 import requests
@@ -24,19 +23,7 @@ def get_prompt(prompt_name : str) -> str:
 
     return template
 
-def intializing_graph() -> StateGraph:
 
-    user = Config.GITHUB_USER
-    repo = Config.PROMPT_REPO
-
-    graph = StateGraph()
-    
-    graph.add_node(node_name,node)
-    
-        
-    
-    graph.compile()
-    return graph
 
 def build_tools():
     registry = ToolRegistry()

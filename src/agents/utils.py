@@ -6,6 +6,7 @@ from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from uuid import uuid4
 from typing import List,Dict,Any
+import logging
 
 load_dotenv()
 
@@ -33,7 +34,10 @@ def rag(query : str,context : List):
     proofs = []
 
     for cont in context:
-        chunks = splitter.split_text(cont.get('content'))
+        content = cont.get('content')
+        if not content :
+            continue
+        chunks = splitter.split_text(content)
         for c in chunks:
             documents.append(
                 Document(
@@ -44,25 +48,26 @@ def rag(query : str,context : List):
                     }
                 )
             )
-
-    vector_store.add_documents(documents)
-    retriever = vector_store.as_retriever(
+    try :
+        vector_store.add_documents(documents)
+        retriever = vector_store.as_retriever(
         search_type="mmr",
-        search_kwargs={"k":5}
-    )
-
-    retrieved = retriever.invoke(query)
-
-    for ret in retrieved:
-        proof = ret.metadata
-        proof['content'] = ret.page_content
-        proofs.append(proof)
+        search_kwargs={"k":5})
+        retrieved = retriever.invoke(query)
+        for ret in retrieved:
+            proof = ret.metadata
+            proof['content'] = ret.page_content
+            proofs.append(proof)
+    except Exception as e:
+        logging.error(f"Something wrong with Vector DB {str(e)}")
 
     return proofs
 
 def format_proofs(proofs : List[Dict[str,Any]]) -> str:
 
     markdown = ""
+    if not proofs:
+        markdown = "No Proof Found"
     
     for proof in proofs:
         markdown += f"TICKER : {proof.get('ticker','')} | TIME : {proof.get('time','')} | SOURCE : {proof.get('source','')} | {proof.get('section','')}"

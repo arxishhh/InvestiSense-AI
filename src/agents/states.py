@@ -8,38 +8,53 @@ class AgentState(TypedDict):
     session_id : UUID = Field(default = UUID)
     query : str
     final_response : str
-    # messages : List[BaseMessage]
     #WebSockets
-    # status : str = Field(default = "intermediate")
-    # current_process : str
     #Context
     proofs : List[Dict[str,str]]
-    formatted_proof : str
-    analysis : str
+    formatted_proofs : str
+    analysis : str = " "
+    status_messages : str = " "
+
+class Routes(str, Enum):
+    AUDITOR = "auditor"
+    FINANCER = "financer"
+    NEWSROOM ="newsroom"
+    ANALYSER = "analyser"
+    REPLIER = "replier"
+
+class SupervisorState(BaseModel):
+    route : List[Routes] = Field(...,
+        description="""
+        "auditor" : "Collects financial evidence from SEC filings (10-K, 10-Q) by identifying tickers, years, and required filing sections using tool-based retrieval.",
+        "financer" : "Retrieves financial statements (balance sheet, income statement, cash flow) and structured financial data for the requested tickers and years.",
+        "newsroom" : "Collects recent financial news, search-based context, and real-time stock data relevant to the query.",
+        "analyser" : "Analyzes collected financial, filing, and news evidence to produce a grounded explanation based only on retrieved proofs.",
+        "replier" : "Converts the analyzer’s grounded explanation into a clear, user-facing financial response."
+        """
+    )
 
 
 
 class TenKSECSection(str, Enum):
-    BUSINESS = "1"             
-    RISK_FACTORS = "1A"        
-    UNRESOLVED_STAFF_COMMENTS = "1B"
-    PROPERTIES = "2"           
-    LEGAL_PROCEEDINGS = "3" 
-    MINE_SAFETY = "4"
-    MARKET_FOR_EQUITY = "5"     
-    RESERVED_6 = "6"          
-    MDA = "7"                  
-    MARKET_RISK = "7A"         
-    ACCOUNTING_DISPUTES = "9"   
-    INTERNAL_CONTROLS = "9A"    
-    OTHER_INFO = "9B"          
-    FOREIGN_AUDIT = "9C"      
-    DIRECTORS_GOVERNANCE = "10" 
-    EXECUTIVE_COMP = "11"     
-    SECURITY_OWNERSHIP = "12"  
-    CERTAIN_RELATIONSHIPS = "13"
-    AUDIT_FEES = "14"         
-    EXHIBITS = "15"
+    BUSINESS = "i-1"             
+    RISK_FACTORS = "i-1a"        
+    UNRESOLVED_STAFF_COMMENTS = "i-1b"
+    PROPERTIES = "i-2"           
+    LEGAL_PROCEEDINGS = "i-3" 
+    MINE_SAFETY = "i-4"
+    MARKET_FOR_EQUITY = "ii-5"     
+    RESERVED_6 = "ii-6"          
+    MDA = "ii-7"                  
+    MARKET_RISK = "ii-7a"         
+    ACCOUNTING_DISPUTES = "ii-9"   
+    INTERNAL_CONTROLS = "ii-9a"    
+    OTHER_INFO = "ii-9b"              
+    DIRECTORS_GOVERNANCE = "iii-10" 
+    EXECUTIVE_COMP = "iii-11"     
+    SECURITY_OWNERSHIP = "iii-12"  
+    CERTAIN_RELATIONSHIPS = "iii-13"
+    AUDIT_FEES = "iii-14"         
+    EXHIBITS = "iv-15"
 
 
 class TenQSECSection(str, Enum):
@@ -105,25 +120,24 @@ class TenKFilingToolState(BaseModel):
     years : List[str] = Field(...,description="List of years e.g.['2024','2023']")
     sections : List[TenKSECSection] = Field(...,
                                             description="""
-    '1' : Company operations, products, services, markets, strategy.
-    '1A' : Major risks affecting business, finances, or operations.
-    '2' : Physical assets like offices, plants, warehouses.
-    '3' : Major lawsuits or regulatory cases.
-    '4' : Mining-related safety reporting (if applicable).
-    '5' : Stock info, dividends, shareholders.
-    '6 : Historical financial summary.
-    '7' : Management explanation of financial performance and outlook.
-    '7A' : Interest rate, currency, commodity risk exposure.
-    '9' : Accounting disputes (if any).
-    '9A' : Internal controls over financial reporting.
-    '9B' : Miscellaneous disclosures.
-    '9C' : Disclosure about foreign audit inspections.
-    '10' : Leadership and governance structure.
-    '11' : Salary, bonuses, stock compensation.
-    '12' : Major shareholders and insider ownership.
-    '13' : Conflicts of interest or insider dealings.
-    '14' : Audit and consulting fees.
-    '15' : Contracts, certifications, supporting filings.
+    'i-1' : Company operations, products, services, markets, strategy.
+    'i-1a' : Major risks affecting business, finances, or operations.
+    'i-2' : Physical assets like offices, plants, warehouses.
+    'i-3' : Major lawsuits or regulatory cases.
+    'i-4' : Mining-related safety reporting (if applicable).
+    'ii-5' : Stock info, dividends, shareholders.
+    'ii-6 : Historical financial summary.
+    'ii-7' : Management explanation of financial performance and outlook.
+    'ii-7a' : Interest rate, currency, commodity risk exposure.
+    'ii-9' : Accounting disputes (if any).
+    'ii-9A' : Internal controls over financial reporting.
+    'ii-9B' : Miscellaneous disclosures.
+    'iii-10' : Leadership and governance structure.
+    'iii-11' : Salary, bonuses, stock compensation.
+    'iii-12' : Major shareholders and insider ownership.
+    'iii-13' : Conflicts of interest or insider dealings.
+    'iii-14' : Audit and consulting fees.
+    'iv-15' : Contracts, certifications, supporting filings.
                                             """)
     
 
