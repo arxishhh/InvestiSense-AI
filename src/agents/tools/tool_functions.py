@@ -382,7 +382,7 @@ def tickerResolver(company_names : List[str]) -> dict:
     }
 
 if __name__ == "__main__":
-    print(getKFiling(tickers=['TSLA']))
+    print(search(query='company with the highest revenue in 2025'))
 
 
     

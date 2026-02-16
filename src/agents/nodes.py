@@ -30,7 +30,7 @@ supervisorLLM = ChatGoogleGenerativeAI(
 def supervisor_node(state : AgentState):
     
     template = get_prompt("supervisor")
-    status_messages = "FETCHED 10-K FILING SECTION RISK FACTORS FOR APPLE 2022,2023,2024 FETCHED BALANCE SHEET FOR APPLE FOR 2022,2023,2024 ANALYZED THE DATA GIVEN"
+    status_messages = ""
 
     prompt = PromptTemplate(
         template=template,
@@ -42,7 +42,10 @@ def supervisor_node(state : AgentState):
         'proofs':status_messages
     })
     response = supervisorLLM.with_structured_output(SupervisorState).invoke(invoke_prompt)
-    print(response)
+    goto = [res.value for res in response.route]
+    return Command(
+        goto=goto
+    )
 
 def auditor_node(state : AgentState):
 
@@ -66,7 +69,6 @@ def auditor_node(state : AgentState):
 
         llm_with_tools = llm.bind_tools(AuditTools)
         response = llm_with_tools.invoke(invoke_prompt)
-        print(response.tool_calls)
 
         if response.content == 'DONE' or not response.tool_calls:
             done = True
@@ -168,9 +170,10 @@ def newsroom_node(state : AgentState):
             tool_calls = response.tool_calls
             tool_response = tool_call_loop(tool_calls=tool_calls)
             messages = f"{messages}  {tool_response.get('message')}"
-            proofs = proofs+tool_response.get('proofs',[])
+            proofs = proofs+tool_response.get('proofs')
 
         iterations+=1
+
     proofs = state['proofs']+proofs
     formatted_proofs = f"{state['formatted_proofs']} \n {format_proofs(proofs)}"
     status_messages = f"{state['status_messages']} {messages}"
@@ -196,17 +199,19 @@ def analyzer_node(state : AgentState):
                                    'proofs':proofs})
     
     response = llm.invoke(invoke_prompt)
+    status_messages = f"{state['status_messages']} COMPLETED ANALYSIS ON THE GIVEN PROOFS."
 
     return Command(
         goto='replier',
         update={
-                "analysis" : response.content
+                "analysis" : response.content,
+                "status_messages" : status_messages
         })
 
 def replier_node(state : AgentState):
     
     query = state['query']
-    analysis = state.get['analysis']
+    analysis = state['analysis']
 
     template = get_prompt('replier')
 
@@ -226,8 +231,8 @@ def replier_node(state : AgentState):
 
 
 if __name__ == "__main__":
-    state = supervisor_node({
-        'query':"Analyze whether Apple’s rising liabilities between 2022 and 2024 are discussed as a financial risk in its 10-K filings.",
+    state = replier_node({
+        'query':"Hi.",
         'proofs':[],
         'formatted_proofs':"",
         'status_messages':"",

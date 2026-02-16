@@ -23,13 +23,14 @@ class Routes(str, Enum):
     REPLIER = "replier"
 
 class SupervisorState(BaseModel):
+    query : str
     route : List[Routes] = Field(...,
         description="""
         "auditor" : "Collects financial evidence from SEC filings (10-K, 10-Q) by identifying tickers, years, and required filing sections using tool-based retrieval.",
         "financer" : "Retrieves financial statements (balance sheet, income statement, cash flow) and structured financial data for the requested tickers and years.",
         "newsroom" : "Collects recent financial news, search-based context, and real-time stock data relevant to the query.",
         "analyser" : "Analyzes collected financial, filing, and news evidence to produce a grounded explanation based only on retrieved proofs.",
-        "replier" : "Converts the analyzer’s grounded explanation into a clear, user-facing financial response."
+        "replier" : "Converts the analyzer’s grounded explanation into a clear, user-facing financial response. Also answers  users general query"
         """
     )
 
