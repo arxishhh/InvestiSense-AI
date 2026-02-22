@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     GROQ_MODEL : str
     IDENTITY : str
     TAVILY_API_KEY : str
+    JWT_SECRET : str
+    JWT_ALGORITHM : str
 
 
     model_config = SettingsConfigDict(

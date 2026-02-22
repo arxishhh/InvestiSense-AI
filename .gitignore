@@ -7,6 +7,9 @@ venv
 dataset
 testenv
 test
+app
+database
+migrations
 # C extensions
 *.so
 

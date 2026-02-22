@@ -1,84 +1,81 @@
-# 🚀 InvestiSense AI
+# 🚀 InvestiSense AI — Financial Intelligence System
 
->**InvestiSense-AI** is an intelligent financial assistant that provides real-time insights, analysis, and personalized recommendations for smarter investing.
+InvestiSense AI is a **multi-agent financial intelligence system** that retrieves evidence from filings, financial statements, and market news to produce **grounded financial explanations**.
+
+Instead of a single chatbot, the system uses **coordinated agents and a supervisor workflow** to collect, verify, and synthesize financial information.
+
 ---
 
 ## 📝 Description
-**InvestiSense-AI** is an AI-powered financial insights platform designed to simplify investing decisions.  
-It combines **real-time market data**, **advanced analytics**, and **natural language understanding** to:  
 
-- Answer user queries in natural language  
-- Generate personalized financial insights  
-- Assist in portfolio evaluation
+InvestiSense AI is designed to answer **financial reasoning queries using verifiable evidence**.
 
-Built with a **FastAPI backend**, **Streamlit interface**, and **external APIs**,  
-InvestiSense-AI delivers accurate, user-friendly, and interactive financial intelligence  
-tailored for both beginners and experienced investors.
+The system:
+- Retrieves financial statements and filing sections
+- Collects real-time market data and financial news
+- Stores provenance metadata for traceable reasoning
+- Produces grounded financial explanations using LLM analysis
+
+The architecture follows a **supervisor-orchestrated multi-agent workflow** where agents iteratively collect evidence until sufficient information is available to answer a query.
+
+---
+
+## 🧠 System Architecture
+
+InvestiSense AI uses a **LangGraph supervisor-orchestrated architecture** with shared state.
+
+Agents in the system:
+
+- **Supervisor Agent** — routes tasks and manages workflow execution
+- **Auditor Agent** — retrieves 10-K / 10-Q filing evidence
+- **Financer Agent** — retrieves financial statements and metrics
+- **Newsroom Agent** — retrieves financial news and real-time stock data
+- **Analyzer Node** — synthesizes collected financial evidence
+- **Replier Node** — generates the final user explanation
+
+Agents run **iteratively until evidence convergence or iteration limits are reached**.
 
 ---
 
 ## ✨ Features
-- 📊 **Stock Market Q&A** — Ask natural language questions about stocks and get instant AI-powered answers.  
-- 🔍 **Real-Time Financial Data** — Integrates with live market APIs for up-to-date insights.  
-- 🤖 **RAG-Powered Responses** — Combines retrieval and generative AI for accurate, context-rich answers.  
-- 📈 **Company & Sector Analysis** — Provides summaries, comparisons, and financial metrics of companies.  
-- 🧠 **Smart Investment Insights** — AI-driven reasoning for trends, risks, and opportunities.  
-- ⚡ **FastAPI Backend** — High-performance API server for financial data processing.  
-- 🌐 **Streamlit Frontend** — Interactive and intuitive dashboard for seamless user experience.
-- 📌 **User-Friendly Interface** — Minimal, clean design optimized for quick decision-making.
 
----
-
-## 🖥️ Demo
-<!-- Add a GIF or Screenshot -->
-![App Screenshot](assets/homepage.png)
-
-## 🚀 Live Demo
-[Try InvestiSense AI here](https://investisense-ai.streamlit.app/) – Fully functional Streamlit UI version (includes all logic internally for deployment purposes).
-
-> Note: The project also has a FastAPI backend that can be run locally.  
-> Due to deployment size constraints, the deployed demo uses the backend logic embedded directly into the Streamlit app.
-
+- Multi-agent financial reasoning pipeline
+- Supervisor-based orchestration using LangGraph
+- Evidence-driven financial analysis
+- Retrieval from:
+  - SEC filings (10-K / 10-Q)
+  - Financial statements
+  - Market news
+  - Real-time stock data
+- Provenance-aware evidence storage
+- FastAPI backend for query execution
+- JWT authentication for API access
+- Redis caching for retrieval optimization
+- Structured logging and exception handling
+- CLI interface for running financial-analysis queries
 
 ---
 
 ## 🏗️ Tech Stack
-## 🛠️ Tech Stack
 
-- ⚡ **FastAPI** — High-performance backend for AI-powered responses and API endpoints.  
-- 🧠 **LangChain + RAG Pipeline** — Context-aware retrieval and reasoning for financial insights.  
-- 🤖 **LLMs (OpenAI / ChatGroq)** — Natural language understanding and financial Q&A generation.
-- 🐍 **Python** — Core programming language for backend, utilities, and AI logic.  
-- 📊 **SQLite Databases** — Lightweight numeric databases (`analyst_data.db`, `executive_data.db`, `investor_data.db`) for structured financial data.
-- 📈 **yFinance** — Real-time stock price, financials, and historical market data.  
-- 🌐 **Streamlit** — Interactive frontend for querying and visualizations. 
+### Backend
+- Python
+- FastAPI
+- LangGraph
+- Redis
+- JWT Authentication
+
+### AI / Retrieval
+- LLM APIs (Gemini / ChatGroq)
+- RAG-based evidence retrieval
+- yFinance
+- Filing retrieval tools
+
+### System Design
+- Multi-agent orchestration
+- Shared-state execution model
+- Provenance-aware evidence pipeline
+- Structured logging
 
 ---
-
-## 📂 Project Structure
-```plaintext
-InvestiSense-AI/
-└── app/
-    ├── backend/
-    │   ├── main/
-    │   │   ├── __init__.py
-    │   │   └── server.py
-    │   ├── utils/
-    │   │   ├── __init__.py
-    │   │   ├── memory.py
-    │   │   ├── rag_pipeline.py
-    │   │   ├── real_time_data_tool.py
-    │   │   ├── replier.py
-    │   │   ├── routing_classifier_filter.py
-    │   │   └── sql_query_generator.py
-    │   └── __init__.py
-    ├── frontend/
-    │   ├── __init__.py
-    │   └── homepage.py
-    ├── assets/
-    └── database/
-        └── numeric_db/
-            ├── analyst_data.db
-            ├── executive_data.db
-            └── investor_data.db
 

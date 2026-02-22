@@ -16,7 +16,7 @@ async def init_db():
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
 
-async def create_session() -> AsyncSession:
+async def get_session() -> AsyncSession:
     Session = sessionmaker(
         bind=engine,
         class_=AsyncSession,
