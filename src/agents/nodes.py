@@ -28,18 +28,20 @@ supervisorLLM = ChatGoogleGenerativeAI(
 )
 
 def supervisor_node(state : AgentState):
-    
     template = get_prompt("supervisor")
-    status_messages = ""
+    status_messages = state.get('status_messages',"")
+    history = state.get('formatted_history',"")
+
 
     prompt = PromptTemplate(
         template=template,
-        input_variables=['query','proofs']
+        input_variables=['query','proofs','history']
     )
 
     invoke_prompt = prompt.invoke({
         'query':state['query'],
-        'proofs':status_messages
+        'proofs':status_messages,
+        'history':history
     })
     response = supervisorLLM.with_structured_output(SupervisorState).invoke(invoke_prompt)
     goto = [res.value for res in response.route]
@@ -217,9 +219,9 @@ def replier_node(state : AgentState):
 
     prompt = PromptTemplate(
         template=template,
-        input_variables=['query','analysis']
+        input_variables=['query','analysis','history']
     )
-    invoke_prompt = prompt.invoke({'query':query,'analysis':analysis})
+    invoke_prompt = prompt.invoke({'query':query,'analysis':analysis,'history':state.get('formatted_history',"")})
 
     try:
         response = llm.invoke(invoke_prompt)

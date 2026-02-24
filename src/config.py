@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     TAVILY_API_KEY : str
     JWT_SECRET : str
     JWT_ALGORITHM : str
+    REDIS_PORT : int
+    REDIS_HOST : int
 
 
     model_config = SettingsConfigDict(

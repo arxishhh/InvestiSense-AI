@@ -3,10 +3,12 @@ from fastapi import HTTPException,status
 from fastapi import Request, Depends
 from src.auth.utils import decode_token
 from sqlmodel.ext.asyncio.session import AsyncSession
+from src.exceptions import *
 from src.auth.services import UserService
 from src.db.main import get_session
+from src.db.redis import token_in_blocklist
 
-userservice =UserService()
+userservice = UserService()
 
 
 class TokenBearer(HTTPBearer):
@@ -22,7 +24,10 @@ class TokenBearer(HTTPBearer):
         token_data = decode_token(token)
 
         if not self.validate_token(token):
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="Invalid token or expired token")
+            raise InvalidToken()
+        
+        if await token_in_blocklist(token_data.get('jti')):
+            raise InvalidToken()
         
         self.verify_token(token_data=token_data)
         return token_data
@@ -40,13 +45,13 @@ class AccessTokenBearer(TokenBearer):
 
     def verify_token(self,token_data : dict):
         if token_data and token_data.get('refresh'):
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="Invalid token type")
+            raise AccessTokenRequired()
         
 class RefreshTokenBearer(TokenBearer):
 
     def verify_token(self, token_data):
         if token_data and not token_data.get('refresh'):
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid token type")
+            raise RefreshTokenRequired()
 
 
 async def get_current_user(token_data : str = Depends(AccessTokenBearer()), session : AsyncSession = Depends(get_session)):

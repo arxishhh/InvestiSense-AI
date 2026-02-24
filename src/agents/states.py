@@ -6,14 +6,15 @@ from enum import Enum
 
 class AgentState(TypedDict):
     session_id : UUID = Field(default = UUID)
+    chat_history : List 
+    formatted_history : str
     query : str
     final_response : str
-    #WebSockets
     #Context
     proofs : List[Dict[str,str]]
     formatted_proofs : str
-    analysis : str = " "
-    status_messages : str = " "
+    analysis : str = ""
+    status_messages : str = ""
 
 class Routes(str, Enum):
     AUDITOR = "auditor"

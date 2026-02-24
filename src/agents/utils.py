@@ -25,43 +25,53 @@ vector_store = Chroma(
         embedding_function=embeddings
     )
 
+def rag(query: str, context: List):
+
+    try:
+
+        docs = build_documents(context)
+        if not docs:
+            logging.info("No context provided for RAG")
+
+        vector_store.add_documents(docs)
+        retriever = vector_store.as_retriever(
+            search_type="mmr",
+            search_kwargs={"k": 5}
+        )
+        retrieved = retriever.invoke(query)
+
+        return [
+            {
+                **doc.metadata,
+                "content": doc.page_content
+            }
+            for doc in retrieved]
+
+    except Exception as e:
+        logging.info(f"Error in RAG: {e}")
+    
+    return []
 
 
+def build_documents(context : List):
 
-def rag(query : str,context : List):
-
-    documents = []
-    proofs = []
-
+    docs = []
     for cont in context:
-        content = cont.get('content')
-        if not content :
+        content = cont.get("content")
+
+        if not content:
             continue
-        chunks = splitter.split_text(content)
-        for c in chunks:
-            documents.append(
+
+        for chunk in splitter.split_text(content):
+            docs.append(
                 Document(
-                    page_content = c,
-                    id = str(uuid4()),
-                    metadata = {
-                        key : value for key,value in cont.items() if key != 'content'
-                    }
+                    page_content=chunk,
+                    id=str(uuid4()),
+                    metadata={k: v for k, v in cont.items() if k != "content"}
                 )
             )
-    try :
-        vector_store.add_documents(documents)
-        retriever = vector_store.as_retriever(
-        search_type="mmr",
-        search_kwargs={"k":5})
-        retrieved = retriever.invoke(query)
-        for ret in retrieved:
-            proof = ret.metadata
-            proof['content'] = ret.page_content
-            proofs.append(proof)
-    except Exception as e:
-        logging.error(f"Something wrong with Vector DB {str(e)}")
 
-    return proofs
+    return docs
 
 def format_proofs(proofs : List[Dict[str,Any]]) -> str:
 
@@ -79,6 +89,17 @@ def format_proofs(proofs : List[Dict[str,Any]]) -> str:
         markdown +='\n'
     
     return markdown
+
+def format_history(history: List[Dict[str,str]]) -> str:
+    formatted = ""
+    history = history[-10:]
+
+    for message in history:
+        role = message.get('role','')
+        content = message.get('content','')
+        formatted += f"{role.upper()} : {content}\n"
+
+    return formatted
 
 
 

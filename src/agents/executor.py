@@ -25,9 +25,6 @@ def tool_call_loop(tool_calls : List[Dict[str,Any]]):
         'proofs' : proofs,
         'message' : message
     }
-
-
-
             
 
 if __name__ == "__main__":

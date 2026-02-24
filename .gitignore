@@ -10,6 +10,7 @@ test
 app
 database
 migrations
+src/rough.ipynb
 # C extensions
 *.so
 

@@ -10,14 +10,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
 def getKFiling(query : str, tickers : List[str], years : List[str], sections : List[TenKSECSection]):
     set_identity(Config.IDENTITY)
     proofs = []
     message = ""
 
     for ticker in tickers:
-            
         try :
             company = Company(ticker)
             filings = company.get_filings(form='10-K')
@@ -37,8 +35,7 @@ def getKFiling(query : str, tickers : List[str], years : List[str], sections : L
                         continue
 
                     for section in sections:
-
-
+                        
                         part,num = section.split("-")
                         item_key = f"part_{part}_item_{num}"
                         content = filing_obj[item_key]
