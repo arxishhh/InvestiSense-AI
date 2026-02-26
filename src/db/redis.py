@@ -26,9 +26,14 @@ async def token_in_blocklist(jti : str) -> bool:
     return jti is not None
 
 async def cache_retrieval(key : str):
-    pass
+    context = await retrieval_cache.get(key)
+    return context 
 
 async def get_cached_retrieval(key : str,value : str):
-    pass
+    await retrieval_cache.set(
+        name=key,
+        value=value,
+        ex=CACHE_EXPIRY
+    )
 
 
