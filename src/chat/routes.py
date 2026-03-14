@@ -20,8 +20,8 @@ async def get_response(request : Request,chat_request : ChatRequest,token_detail
     try :
         response = graph.invoke(query=query,formatted_history=formatted_history,chat_history=chat_history)
     
-    except Exception as e :
-        response = f"Oops! Something went wrong while processing your request."
+    except Exception as e:
+        response = f"Oops! Something went wrong while processing your request. {str(e)}"
 
     chat_history.append({"role":"investisense","content":response})
     return ChatResponse(chat_history=chat_history,response=response)

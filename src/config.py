@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     JWT_SECRET : str
     JWT_ALGORITHM : str
     REDIS_PORT : int
-    REDIS_HOST : int
+    REDIS_HOST : str
 
 
     model_config = SettingsConfigDict(

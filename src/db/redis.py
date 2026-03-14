@@ -1,15 +1,15 @@
-import aioredis
+import redis.asyncio as redis
 from src.config import Config
 
 JTI_EXPIRY = 3600
 CACHE_EXPIRY = 3600
 
-token_blocklist = aioredis.StrictRedis(
+token_blocklist = redis.Redis(
     host=Config.REDIS_HOST,
     port=Config.REDIS_PORT,
     db=0)
 
-retrieval_cache = aioredis.StrictRedis(
+retrieval_cache = redis.Redis(
     host=Config.REDIS_HOST,
     port=Config.REDIS_PORT,
     db=1

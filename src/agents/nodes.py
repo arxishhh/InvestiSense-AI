@@ -1,16 +1,16 @@
 from dotenv import load_dotenv
 from src.agents.states import AgentState,SupervisorState
+from src.config import Config
 from langgraph.types import Command
 from src.agents.utils import format_proofs
-from src.agents.service import get_prompt
+from src.agents.services import get_prompt
 from langchain_core.prompts import PromptTemplate
-from src.agents.service import build_tools
+from src.agents.services import build_tools
 from src.agents.executor import tool_call_loop
 from langchain_groq import ChatGroq
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langgraph.types import Command
 import logging
-import os
+
 
 load_dotenv()
 tools = build_tools()
@@ -24,10 +24,11 @@ llm = ChatGroq(
 supervisorLLM = ChatGoogleGenerativeAI(
     model="gemini-2.5-flash",
     temperature=0,
-    google_api_key=os.getenv('GEMINI_API_KEY')
+    google_api_key=Config.GEMINI_API_KEY
 )
 
 def supervisor_node(state : AgentState):
+    
     template = get_prompt("supervisor")
     status_messages = state.get('status_messages',"")
     history = state.get('formatted_history',"")
@@ -98,6 +99,7 @@ def auditor_node(state : AgentState):
         })
 
 def financer_node(state : AgentState):
+
     query = state.get('query')
     template = get_prompt('financer')
     messages = ""

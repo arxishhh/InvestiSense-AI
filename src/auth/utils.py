@@ -1,6 +1,5 @@
 from passlib.context import CryptContext
 from src.config import Config
-from src.auth.models import User
 from datetime import datetime,timedelta
 from uuid import uuid4
 import jwt
@@ -11,6 +10,7 @@ ACCESS_TOKEN_EXPIRY = 3600
 
 
 def generate_password_hash(password : str):
+    print(password, type(password))
     return context.hash(password)
 
 def verify_password(password : str,hash :str):
@@ -22,7 +22,7 @@ def create_token(user_data : dict, refresh : bool = False, expiry : timedelta = 
 
     payload = {}
     payload['user'] = user_data
-    payload['expiry'] = datetime.utcnow()+ expiry if expiry else timedelta(seconds=ACCESS_TOKEN_EXPIRY)
+    payload['expiry'] = int((datetime.now()+ (expiry if expiry is not None else timedelta(seconds=ACCESS_TOKEN_EXPIRY))).timestamp())
     payload['jti'] = str(uuid4())
     payload['refresh'] = refresh
     
@@ -43,9 +43,3 @@ def decode_token(token : str):
     except jwt.PyJWTError as e:
         logging.exception(e)
         return None
-
-def create_key():
-    pass
-
-
-

@@ -2,15 +2,16 @@ from src.agents.states import CashFlowMetric,IncomeStatementMetric,BalanceSheetM
 import yfinance as yf
 from src.agents.utils import rag
 from langchain_community.retrievers import TavilySearchAPIRetriever
-from edgar import *
+from edgar import set_identity, Company
+from typing import List
 from src.config import Config
-import yfinance as yf
 import logging
 from dotenv import load_dotenv
 
 load_dotenv()
 
 def getKFiling(query : str, tickers : List[str], years : List[str], sections : List[TenKSECSection]):
+
     set_identity(Config.IDENTITY)
     proofs = []
     message = ""
@@ -70,8 +71,8 @@ def getKFiling(query : str, tickers : List[str], years : List[str], sections : L
     }
 
 def getQFiling(query : str, tickers : List[str], years : List[str],sections : List[TenQSECSection]):
-    set_identity(Config.IDENTITY)
 
+    set_identity(Config.IDENTITY)
     proofs = []
     message = ""
 
@@ -136,6 +137,7 @@ def getQFiling(query : str, tickers : List[str], years : List[str],sections : Li
                 
                         
 def getBalanceSheet(tickers : List[str], years : List[str], values : List[BalanceSheetMetric]):
+
     proofs = []
 
     for ticker in tickers:
@@ -175,6 +177,7 @@ def getBalanceSheet(tickers : List[str], years : List[str], values : List[Balanc
 
 
 def getIncomeStatement(tickers : List[str], years : List[str], values : List[IncomeStatementMetric]):
+
     proofs = []
     for ticker in tickers:
         try:
@@ -212,6 +215,7 @@ def getIncomeStatement(tickers : List[str], years : List[str], values : List[Inc
     
 
 def getCashFlowStatements(tickers : List[str],years : List[str],values : List[CashFlowMetric]):
+
     proofs = []
 
     for ticker in tickers:
@@ -239,7 +243,7 @@ def getCashFlowStatements(tickers : List[str],years : List[str],values : List[Ca
                         )
 
         except Exception as e:
-           logging.error(f"Cannot fetch cash flow for {ticker} : {e}")
+           logging.error(f"Cannot fetch cash flow for {ticker} : {str(e)}")
            continue
     
     message = f"Fetched {' '.join(values)} Cash Flow Statement of {' '.join(tickers)} for years : {' '.join(years)}"
@@ -250,6 +254,7 @@ def getCashFlowStatements(tickers : List[str],years : List[str],values : List[Ca
 
 
 def realTimeDataFetcher(tickers : List[str],period : str,data_type : List[str]):
+
     proofs = []
 
     for ticker in tickers:
@@ -259,7 +264,7 @@ def realTimeDataFetcher(tickers : List[str],period : str,data_type : List[str]):
                 info = company.info
 
             except Exception as e:
-                logging.error(f"Information not available for {ticker} : {e}")
+                logging.error(f"Information not available for {ticker} : {str(e)}")
             ticker_data = {}
             mapping = {
                 'price': lambda: company.history(period=period)['Close'].iloc[-1],
@@ -299,6 +304,7 @@ def realTimeDataFetcher(tickers : List[str],period : str,data_type : List[str]):
     }
 
 def newsFetcher(tickers : List[str]):
+
     tickers = " ".join(tickers)
     proofs = []
     try :
@@ -323,9 +329,9 @@ def newsFetcher(tickers : List[str]):
                         'content':company_news
                     }) 
         except Exception as e:
-            logging.warning(f"Cannot fetch news for {tickers} : {e}")
+            logging.warning(f"Cannot fetch news for {tickers} : {str(e)}")
     except Exception as e:
-        logging.error(f"Error finding {tickers} : {e}")
+        logging.error(f"Error finding {tickers} : {str(e)}")
 
     message = f"Fetched Latest News For {' '.join(tickers)}"
     return {
@@ -353,7 +359,7 @@ def search(query : str):
         message = message+f"Fetched online results for {query}"
     except Exception as e:
         message = f"Failed to search for {query}"
-        logging.error(f"{message} : {e}")
+        logging.error(f"{message} : {str(e)}")
 
     
     return {
@@ -362,6 +368,7 @@ def search(query : str):
     }
     
 def tickerResolver(company_names : List[str]) -> dict:
+
     company_data = {}
 
     for com in company_names:
@@ -369,7 +376,7 @@ def tickerResolver(company_names : List[str]) -> dict:
             res = yf.Search(com,max_results = 1).quotes
             company_data[com] = res[0]['symbol']
         except Exception as e:
-            logging.error(f"Cannot fetch ticker for {com} : {e}")
+            logging.error(f"Cannot fetch ticker for {com} : {str(e)}")
             continue
     
     message = f"Fetched Tickers {str(company_data)}"

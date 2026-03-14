@@ -1,4 +1,4 @@
-from src.agents.service import build_tools
+from src.agents.services import build_tools
 from typing import Dict, List,Any
 
 

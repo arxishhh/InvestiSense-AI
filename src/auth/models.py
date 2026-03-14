@@ -15,7 +15,6 @@ class User(BaseModel):
     created_at : datetime
 
 class UserCreateModel(BaseModel):
-
     username : str = Field(...,max_length=8)
     password : str = Field(...,max_length=8,exclude=True)
     first_name : str
@@ -23,7 +22,8 @@ class UserCreateModel(BaseModel):
     email : str
 
 class UserLoginModel(BaseModel):
-
+    
+    email : str 
     username : str = Field(...,max_length=8)
     password : str = Field(...,max_length=8,exclude=True)
 

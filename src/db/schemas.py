@@ -1,17 +1,15 @@
 from sqlmodel import SQLModel,Field,Column
 from sqlalchemy.dialects import postgresql as pg
-from uuid import UUID
-from src.db.main import init_db
+from uuid import UUID,uuid4
 import datetime
-import asyncio
 
 
 class User(SQLModel,table=True):
     __tablename__ = 'users'
 
-    id : UUID = Field(sa_column=Column(pg.UUID(as_uuid=True),
+    uid : UUID = Field(sa_column=Column(pg.UUID(as_uuid=True),
                                        primary_key=True,
-                                       default=UUID))
+                                       default=uuid4))
     
     username : str = Field(sa_column=Column('username',pg.VARCHAR(8),unique = True,nullable=False))
     email : str 

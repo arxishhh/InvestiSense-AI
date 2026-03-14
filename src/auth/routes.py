@@ -1,4 +1,5 @@
-from fastapi import APIRouter,Depends,JSONResponse,status, HTTPException
+from fastapi import APIRouter,Depends,status
+from fastapi.responses import JSONResponse
 from src.auth.models import UserCreateModel,UserLoginModel
 from src.db.main import get_session
 from src.auth.utils import verify_password,create_token
@@ -6,7 +7,9 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from src.auth.services import UserService
 from src.auth.dependency import AccessTokenBearer,RefreshTokenBearer
 from datetime import timedelta,datetime
-from src.exceptions import *
+from src.exceptions import (UserAlreadyExists,
+                            InvalidCredentials,
+                            InvalidToken)
 from src.db.redis import add_jti_to_blocklist
 
 
@@ -19,11 +22,14 @@ user_service = UserService()
 async def create_account(user : UserCreateModel,
                          session : AsyncSession = Depends(get_session)):
     
-    if not await user_service.user_exists(username=user.username,session=session):
+    if not await user_service.user_exists(email=user.email,username=user.username,session=session):
         new_user = await user_service.create_user(user_data=user,session=session)
         return JSONResponse(
             content={'message': 'User created successfully', 
-                     'user': new_user},
+                     'user': {
+                         'email':new_user.email,
+                         'username':new_user.username
+                     }},
             status_code = status.HTTP_201_CREATED
         )
     else :
@@ -31,6 +37,8 @@ async def create_account(user : UserCreateModel,
 
 @auth_router.post('/login')
 async def login_user(login_data : UserLoginModel, session : AsyncSession = Depends(get_session)):
+
+    username = login_data.username
     email = login_data.email
     password = login_data.password
 
@@ -60,10 +68,8 @@ async def login_user(login_data : UserLoginModel, session : AsyncSession = Depen
     
     raise InvalidCredentials()
 
-    
-
 @auth_router.post('/logout')
-async def revoke_token(token_details : dict = Depends(AccessTokenBearer)):
+async def revoke_token(token_details : dict = Depends(RefreshTokenBearer())):
     jti = token_details.get('jti')
     await add_jti_to_blocklist(jti)
 
@@ -75,9 +81,9 @@ async def revoke_token(token_details : dict = Depends(AccessTokenBearer)):
     )
 
 @auth_router.get('/refresh')
-async def get_new_access_token(token_data : dict = Depends(RefreshTokenBearer)) -> JSONResponse:
+async def get_new_access_token(token_data : dict = Depends(RefreshTokenBearer())) -> JSONResponse:
     expiry_timestamp = token_data.get('expiry')
-    if datetime.utcfromtimestamp(expiry_timestamp) > datetime.utcnow():
+    if expiry_timestamp and datetime.fromtimestamp(expiry_timestamp) > datetime.now():
         new_access_token = create_token(user_data=token_data.get('user'),refresh=False)
 
         return JSONResponse(

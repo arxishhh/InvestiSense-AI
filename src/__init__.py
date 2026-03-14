@@ -21,7 +21,7 @@ async def startup():
 
 register_all_errors(investisense_app)
 
-investisense_app.include_router(auth_router, f"/api/{version}/auths",tags=['auth'])
-investisense_app.include_router(chat_router, f"/api/{version}/chat",tags=['chat'])
+investisense_app.include_router(router = auth_router,prefix = f"/api/{version}/auths",tags=['auth'])
+investisense_app.include_router(router = chat_router,prefix = f"/api/{version}/chat",tags=['chat'])
 
 

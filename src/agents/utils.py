@@ -1,4 +1,3 @@
-from edgar import *
 from dotenv import load_dotenv
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import HuggingFaceEmbeddings
@@ -81,25 +80,16 @@ def format_proofs(proofs : List[Dict[str,Any]]) -> str:
     
     for proof in proofs:
         markdown += f"TICKER : {proof.get('ticker','')} | TIME : {proof.get('time','')} | SOURCE : {proof.get('source','')} | {proof.get('section','')}"
-        if type(proof.get('content')) == str:
+        if isinstance(proof.get('content'),str):
             markdown += f"\n{proof.get('content')}"
-        elif type(proof.get('content')) == dict:
+        elif isinstance(proof.get('content'),dict):
             for key,value in proof.get('content').items():
                 markdown += f"\n {key} : {value}\n"
         markdown +='\n'
     
     return markdown
 
-def format_history(history: List[Dict[str,str]]) -> str:
-    formatted = ""
-    history = history[-10:]
 
-    for message in history:
-        role = message.get('role','')
-        content = message.get('content','')
-        formatted += f"{role.upper()} : {content}\n"
-
-    return formatted
 
 
 

@@ -5,8 +5,6 @@ from src.config import Config
 from sqlmodel import SQLModel
 from sqlalchemy.orm import sessionmaker
 
-
-
 engine = AsyncEngine(
     create_engine(
         url=Config.URL_DATABASE
@@ -25,3 +23,4 @@ async def get_session():
 
     async with Session() as session:
         yield session
+    

@@ -74,9 +74,9 @@ def register_all_errors(app : FastAPI):
     UserNotFound,
     create_exception_handler(
         status_code = status.HTTP_404_NOT_FOUND,
-        inital_detail = {
-            "message": "User with email already exists",
-            "error_code": "user_exists"
+        initial_detail= {
+            "message": "User Not Found",
+            "error_code": "user_not_found"
         }
     ))
 
@@ -84,9 +84,9 @@ def register_all_errors(app : FastAPI):
     UserAlreadyExists,
     create_exception_handler(
         status_code = status.HTTP_403_FORBIDDEN,
-        inital_detail = {
-            "message": "User Not Found",
-            "error_code": "user_not_found"
+        initial_detail= {
+            "message": "User with email already exists",
+            "error_code": "user_exists"
         }
     ))
 
@@ -94,7 +94,7 @@ def register_all_errors(app : FastAPI):
     InvalidCredentials,
     create_exception_handler(
         status_code = status.HTTP_403_FORBIDDEN,
-        inital_detail = {
+        initial_detail= {
             "message": "Invalid Credentials",
             "error_code": "invalid_credentials"
         }
@@ -104,8 +104,8 @@ def register_all_errors(app : FastAPI):
     InvalidToken,
     create_exception_handler(
         status_code = status.HTTP_403_FORBIDDEN,
-        inital_detail = {
-            "message": "Token in invalid",
+        initial_detail= {
+            "message": "Token is invalid",
             "error_code": "invalid_token"
         }
     ))
@@ -114,7 +114,7 @@ def register_all_errors(app : FastAPI):
     RevokedToken,
     create_exception_handler(
         status_code = status.HTTP_403_FORBIDDEN,
-        inital_detail = {
+        initial_detail= {
             "message": "Token is invalid or already revoked",
             "error_code": "revoked_token"
         }
@@ -124,7 +124,7 @@ def register_all_errors(app : FastAPI):
     AccessTokenRequired,
     create_exception_handler(
         status_code = status.HTTP_403_FORBIDDEN,
-        inital_detail = {
+        initial_detail= {
             "message": "Please provide a valid access token",
             "error_code": "access_token_required"
         }
@@ -134,7 +134,7 @@ def register_all_errors(app : FastAPI):
     RefreshTokenRequired,
     create_exception_handler(
         status_code = status.HTTP_403_FORBIDDEN,
-        inital_detail = {
+        initial_detail= {
             "message": "Please provide a valid refresh token",
             "error_code": "refresh_token_required"
         }
@@ -144,7 +144,7 @@ def register_all_errors(app : FastAPI):
     GraphException,
     create_exception_handler(
         status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
-        inital_detail = {
+        initial_detail= {
             "message": "An error occurred while processing the graph operation",
             "error_code": "graph_exception"
         }
